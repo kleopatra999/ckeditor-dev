@@ -102,8 +102,8 @@
 					return;
 				}
 				// Pin the space element while page scrolls down to pull it off the view port.
-				else if ( mode == 'top' && spaceRect.top < pinnedOffsetY )
-					changeMode( 'pin' );
+				else if ( mode == 'top' )
+					changeMode( 'top' );
 				else if ( mode == 'pin' ) {
 					// Restore into docked top from pin.
 					if ( editorRect.top > dockedOffsetY + spaceHeight )
