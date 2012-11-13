@@ -7,7 +7,7 @@ var CKBUILDER_CONFIG = {
 	skin: 'moono',
 	ignore: [
 		'dev',
-                '.jslintrc',
+        '.jslintrc',
 		'.gitignore',
 		'.gitattributes',
 		'README.md'
@@ -16,6 +16,7 @@ var CKBUILDER_CONFIG = {
 		a11yhelp : 0,
 		about : 0,
 		basicstyles : 1,
+        belink : 1,
 		bidi : 0,
 		blockquote : 0,
 		clipboard : 1,
@@ -39,7 +40,7 @@ var CKBUILDER_CONFIG = {
 		image : 1,
 		indent : 1,
 		justify : 1,
-		link : 1,
+		link : 0,
 		list : 1,
 		liststyle : 0,
 		magicline : 0,
