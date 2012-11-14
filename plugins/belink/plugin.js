@@ -1,4 +1,4 @@
-﻿/*jslint vars:true */
+﻿/*jslint sloppy:true vars:true */
 /**
  * @license Copyright (c) 2003-2012, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.html or http://ckeditor.com/license
@@ -224,63 +224,29 @@ CKEDITOR.plugins.link = {
     switch ( data.type || 'url' ) {
       case 'url':
         var protocol = ( data.url && data.url.protocol != undefined ) ? data.url.protocol : 'http://',
-      url = ( data.url && CKEDITOR.tools.trim( data.url.url ) ) || '';
-      attributes[ 'data-cke-saved-href' ] = ( url.indexOf( '/' ) === 0 ) ? url : protocol + url;
-      break;
+        url = ( data.url && CKEDITOR.tools.trim( data.url.url ) ) || '';
+        attributes[ 'data-cke-saved-href' ] = ( url.indexOf( '/' ) === 0 ) ? url : protocol + url;
+        break;
       case 'anchor':
         var name = ( data.anchor && data.anchor.name ),
-      id = ( data.anchor && data.anchor.id );
-      attributes[ 'data-cke-saved-href' ] = '#' + ( name || id || '' );
-      break;
+        id = ( data.anchor && data.anchor.id );
+        attributes[ 'data-cke-saved-href' ] = '#' + ( name || id || '' );
+        break;
       case 'email':
-
         var linkHref,
-      email = data.email,
-      address = email.address;
-
-      switch ( emailProtection ) {
-        case '':
-        case 'encode':
-          var subject = encodeURIComponent( email.subject || '' ),
-          body = encodeURIComponent( email.body || '' );
-
-          // Build the e-mail parameters first.
-          var argList = [];
-          subject && argList.push( 'subject=' + subject );
-          body && argList.push( 'body=' + body );
-          argList = argList.length ? '?' + argList.join( '&' ) : '';
-
-          if ( emailProtection == 'encode' ) {
-            linkHref = [ 'javascript:void(location.href=\'mailto:\'+',
-              protectEmailAddressAsEncodedString( address ) ];
-              // parameters are optional.
-              argList && linkHref.push( '+\'', escapeSingleQuote( argList ), '\'' );
-
-              linkHref.push( ')' );
-          } else {
-            linkHref = [ 'mailto:', address, argList ];
-          }
-
-          break;
-        default:
-          // Separating name and domain.
-          var nameAndDomain = address.split( '@', 2 );
-          email.name = nameAndDomain[ 0 ];
-          email.domain = nameAndDomain[ 1 ];
-
-          linkHref = [ 'javascript:', protectEmailLinkAsFunction( email ) ];
-      }
-
-      attributes[ 'data-cke-saved-href' ] = linkHref.join( '' );
-      break;
+        email = data.email,
+        address = email.address;
+        attributes[ 'data-cke-saved-href' ] = 'mailto:'+email.address;
+        break;
     }
 
     var selection = editor.getSelection();
 
     // Browser need the "href" fro copy/paste link to work. (#6641)
     attributes.href = attributes[ 'data-cke-saved-href' ];
+    attributes.style = "color:#"+data.color;
 
-    if ( !this._.selectedElement ) {
+    if ( !data.element ) {
       var range = selection.getRanges( 1 )[ 0 ];
 
       // Use link URL as text with a collapsed cursor.
@@ -298,24 +264,24 @@ CKEDITOR.plugins.link = {
       range.select();
     } else {
       // We're only editing an existing link, so just overwrite the attributes.
-      var element = this._.selectedElement,
+      var element = data.element,
       href = element.data( 'cke-saved-href' ),
       textView = element.getHtml();
 
       element.setAttributes( attributes );
       element.removeAttributes( removeAttributes );
 
-      if ( data.adv && data.adv.advName && CKEDITOR.plugins.link.synAnchorSelector )
+      if ( data.adv && data.adv.advName && CKEDITOR.plugins.link.synAnchorSelector ) {
         element.addClass( element.getChildCount() ? 'cke_anchor' : 'cke_anchor_empty' );
+      }
 
       // Update text view when user changes protocol (#4612).
-      if ( href == textView || data.type == 'email' && textView.indexOf( '@' ) != -1 ) {
+      if ( href == textView || (data.type == 'email' && textView.indexOf( '@' ) != -1) ) {
         // Short mailto link text view (#5736).
         element.setHtml( data.type == 'email' ? data.email.address : attributes[ 'data-cke-saved-href' ] );
       }
 
       selection.selectElement( element );
-      delete this._.selectedElement;
     }
   },
 
