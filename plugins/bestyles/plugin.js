@@ -4,7 +4,16 @@
  */
 
 (function() {
-	CKEDITOR.plugins.add( 'stylescombo', {
+
+    function noop() {}
+	function sortStyles( styleA, styleB ) {
+		var typeA = styleA.type,
+			typeB = styleB.type;
+
+		return typeA == typeB ? 0 : typeA == CKEDITOR.STYLE_OBJECT ? -1 : typeB == CKEDITOR.STYLE_OBJECT ? 1 : typeB == CKEDITOR.STYLE_BLOCK ? 1 : -1;
+	}
+
+	CKEDITOR.plugins.add( 'bestyles', {
 		requires: 'richcombo',
 		lang: 'af,ar,bg,bn,bs,ca,cs,cy,da,de,el,en-au,en-ca,en-gb,en,eo,es,et,eu,fa,fi,fo,fr-ca,fr,gl,gu,he,hi,hr,hu,is,it,ja,ka,km,ko,lt,lv,mk,mn,ms,nb,nl,no,pl,pt-br,pt,ro,ru,sk,sl,sr-latn,sr,sv,th,tr,ug,uk,vi,zh-cn,zh', // %REMOVE_LINE_CORE%
 
@@ -13,6 +22,7 @@
 				lang = editor.lang.stylescombo,
 				styles = {},
 				stylesList = [],
+                defaultStyle,
 				combo;
 
 			function loadStylesSet( callback ) {
@@ -33,6 +43,10 @@
 							style._name = styleName;
 							style._.enterMode = config.enterMode;
 
+                            if ( style.isDefault ) {
+                              defaultStyle = styleName;
+                            }
+
 							stylesList.push( style );
 						}
 
@@ -40,7 +54,7 @@
 						stylesList.sort( sortStyles );
 					}
 
-					callback && callback();
+					(callback || noop)();
 				});
 			}
 
@@ -68,10 +82,11 @@
 							styleName = style._name;
 							type = style.type;
 
+                            /*
 							if ( type != lastType ) {
 								combo.startGroup( lang[ 'panelTitle' + String( type ) ] );
 								lastType = type;
-							}
+							}*/
 
 							combo.add( styleName, style.type == CKEDITOR.STYLE_OBJECT ? styleName : style.buildPreview(), styleName );
 						}
@@ -114,8 +129,9 @@
 						}
 
 						// If no styles match, just empty it.
-						this.setValue( '' );
+						this.setValue( defaultValue || '' );
 					}, this );
+                    combo = this;
 				},
 
 				onOpen: function() {
@@ -172,15 +188,11 @@
 			});
 
 			editor.on( 'instanceReady', function() {
-				loadStylesSet();
+				loadStylesSet(function() {
+                  combo.setValue( defaultValue || '' );
+                });
 			});
 		}
 	});
 
-	function sortStyles( styleA, styleB ) {
-		var typeA = styleA.type,
-			typeB = styleB.type;
-
-		return typeA == typeB ? 0 : typeA == CKEDITOR.STYLE_OBJECT ? -1 : typeB == CKEDITOR.STYLE_OBJECT ? 1 : typeB == CKEDITOR.STYLE_BLOCK ? 1 : -1;
-	}
 })();
