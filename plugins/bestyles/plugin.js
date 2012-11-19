@@ -103,7 +103,7 @@
 					var style = styles[ value ],
 						elementPath = editor.elementPath();
 
-					editor[ style.checkActive( elementPath ) ? 'removeStyle' : 'applyStyle' ]( style );
+					editor.applyStyle( style );
 					editor.fire( 'saveSnapshot' );
 				},
 
@@ -129,7 +129,7 @@
 						}
 
 						// If no styles match, just empty it.
-						this.setValue( defaultValue || '' );
+						this.setValue( defaultStyle || '' );
 					}, this );
                     combo = this;
 				},
@@ -189,7 +189,7 @@
 
 			editor.on( 'instanceReady', function() {
 				loadStylesSet(function() {
-                  combo.setValue( defaultValue || '' );
+                  combo.setValue( defaultStyle || '' );
                 });
 			});
 		}

@@ -216,6 +216,10 @@ CKEDITOR.plugins.add( 'belink', {
  * @singleton
  */
 CKEDITOR.plugins.link = {
+  /**
+   * @param editor CKEDITOR.editor
+   * @param data Object Expects type, email or url as an object
+   */
   commit: function( editor, data ) {
     var attributes = {},
     removeAttributes = [];

@@ -49,7 +49,7 @@ CKEDITOR.plugins.add( 'becolor', {
                     require('Core/Events').trigger('ckeditor.color', {
                       editor : editor,
                       button : this,
-                      color : color
+                      color  : color
                     });
 
 					return color;
@@ -66,7 +66,7 @@ CKEDITOR.plugins.becolor = {
   commit : function commit(editor, color, type ) {
 
     var isUnstylable = CKEDITOR.plugins.becolor.isUnstylable,
-    config = CKEDITOR.config;
+        config       = CKEDITOR.config;
 
     type = type || 'fore';
 
