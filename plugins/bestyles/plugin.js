@@ -43,7 +43,7 @@
 							style._name = styleName;
 							style._.enterMode = config.enterMode;
 
-                            if ( style.isDefault ) {
+                            if ( styleDefinition.isDefault ) {
                               defaultStyle = styleName;
                             }
 
