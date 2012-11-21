@@ -24,6 +24,11 @@ pre, code, kbd, samp, tt
 	font-size: 1em;
 }
 
+body {
+    width: 960px;
+    margin: 0 auto;
+}
+
 code
 {
 	background: #f3f3f3;
@@ -292,4 +297,44 @@ dl.samples > dd
 	content : 'WARNING: ';
 	font-weight: bold;
 	font-size: 16px;
+}
+
+/* Used on inline samples */
+
+blockquote
+{
+	font-style: italic;
+	font-family: Georgia, Times, "Times New Roman", serif;
+	padding: 2px 0;
+	border-style: solid;
+	border-color: #ccc;
+	border-width: 0;
+}
+
+.cke_contents_ltr blockquote
+{
+	padding-left: 20px;
+	padding-right: 8px;
+	border-left-width: 5px;
+}
+
+.cke_contents_rtl blockquote
+{
+	padding-left: 8px;
+	padding-right: 20px;
+	border-right-width: 5px;
+}
+
+img.right {
+    border: 1px solid #ccc;
+    float: right;
+    margin-left: 15px;
+    padding: 5px;
+}
+
+img.left {
+    border: 1px solid #ccc;
+    float: left;
+    margin-right: 15px;
+    padding: 5px;
 }
