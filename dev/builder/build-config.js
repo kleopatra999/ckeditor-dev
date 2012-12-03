@@ -19,7 +19,7 @@ var CKBUILDER_CONFIG = {
 		about : 1,
 		basicstyles : 1,
 		becolor : 1,
- 		belink : 1,
+		belink : 1,
 		bestyles : 1,
 		bidi : 1,
 		blockquote : 1,
