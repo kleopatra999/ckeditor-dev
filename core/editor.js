@@ -351,7 +351,7 @@
 			 *
 			 *		alert( editor.lang.basicstyles.bold ); // e.g. 'Negrito' (if the language is set to Portuguese)
 			 *
-			 * @property {CKEDITOR.lang} lang
+			 * @property {Object} lang
 			 */
 			// As we'll be adding plugin specific entries that could come
 			// from different language code files, we need a copy of lang,
@@ -412,6 +412,11 @@
 			 * editor instance.
 			 *
 			 *		alert( editor.plugins.dialog.path ); // e.g. 'http://example.com/ckeditor/plugins/dialog/'
+			 *
+			 *		// Check if a plugin is available.
+			 *		if ( editor.plugins.image ) {
+			 *			...
+			 *		}
 			 *
 			 * @property {Object}
 			 */
@@ -898,6 +903,19 @@
 		 *			[ CKEDITOR.CTRL + 121, 'link' ],
 		 *			[ CKEDITOR.SHIFT + 120, 'bold' ]
 		 *		] );
+		 *
+		 * This method may be used in the following cases:
+		 *
+		 * * By plugins (like `link` or `basicstyles`) to set their keystrokes when plugins are being loaded.
+		 * * During the runtime to modify existing keystrokes.
+		 *
+		 * The editor handles keystroke configuration in the following order:
+		 *
+		 * 1. Plugins use this method to define default keystrokes.
+		 * 2. Editor extends default keystrokes with {@link CKEDITOR.config#keystrokes}.
+		 * 3. Editor blocks keystrokes defined in {@link CKEDITOR.config#blockedKeystrokes}.
+		 *
+		 * After all, you can still set new keystrokes using this method during the runtime.
 		 *
 		 * @since 4.0
 		 * @param {Number/Array} keystroke Keystroke or an array of keystroke definitions.
