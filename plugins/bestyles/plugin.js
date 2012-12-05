@@ -91,12 +91,20 @@
 							combo.add( styleName, style.type == CKEDITOR.STYLE_OBJECT ? styleName : style.buildPreview(), styleName );
 						}
 
+                        combo.add( 'edit', 'Edit Text Styles...', 'Edit Styles' );
+
 						combo.commit();
 
 					});
 				},
 
 				onClick: function( value ) {
+
+                    if (value === 'edit') {
+                      require('Core/Events').trigger('ckeditor.styles', { editor: editor });
+                      return;
+                    }
+
 					editor.focus();
 					editor.fire( 'saveSnapshot' );
 
