@@ -441,7 +441,13 @@ CKEDITOR.tools.extend( CKEDITOR.dom.node.prototype, {
 	 * @returns {CKEDITOR.dom.element} The parent element.
 	 */
 	getParent: function( allowFragmentParent ) {
-		var parent = this.$.parentNode;
+		var parent;
+		try {
+			parent = this.$.parentNode;
+		}
+		catch( e ) {
+			parent = null;
+		}
 		return ( parent && ( parent.nodeType == CKEDITOR.NODE_ELEMENT || allowFragmentParent && parent.nodeType == CKEDITOR.NODE_DOCUMENT_FRAGMENT ) ) ? new CKEDITOR.dom.node( parent ) : null;
 	},
 
