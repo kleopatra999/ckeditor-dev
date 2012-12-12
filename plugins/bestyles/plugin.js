@@ -101,7 +101,7 @@
 				onClick: function( value ) {
 
                     if (value === 'edit') {
-                      require('Core/Events').trigger('ckeditor.styles', { editor: editor });
+                      require('Core/Events').trigger('ckeditor.styles', { editor: editor, value: this.getValue() });
                       return;
                     }
 
