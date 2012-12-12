@@ -85,6 +85,7 @@ CKEDITOR.plugins.add( 'belink', {
 				if ( element.is( 'a' ) ) {
 					//evt.data.dialog = ( element.getAttribute( 'name' ) && ( !element.getAttribute( 'href' ) || !element.getChildCount() ) ) ? 'anchor' : 'link';
 					editor.getSelection().selectElement( element );
+                    editor.execCommand( 'link' );
 				} 
                 //else if ( CKEDITOR.plugins.link.tryRestoreFakeAnchor( editor, element ) )
 					//evt.data.dialog = 'anchor';
