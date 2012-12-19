@@ -88,10 +88,11 @@
 								lastType = type;
 							}*/
 
-							combo.add( styleName, style.type == CKEDITOR.STYLE_OBJECT ? styleName : style.buildPreview(), styleName );
+							//combo.add( styleName, style.type == CKEDITOR.STYLE_OBJECT ? styleName : style.buildPreview(), styleName );
+							combo.add( styleName, '<strong>'+styleName+'</strong>', styleName );
 						}
 
-                        combo.add( 'edit', 'Edit Text Styles...', 'Edit Styles' );
+                        combo.add( 'edit', '<span style="color:#000">Edit Text Styles...<span>', 'Edit Styles' );
 
 						combo.commit();
 
