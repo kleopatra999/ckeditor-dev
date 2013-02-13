@@ -251,6 +251,11 @@ CKEDITOR.plugins.link = {
     attributes.href = attributes[ 'data-cke-saved-href' ];
     attributes.style = "color:#"+data.color;
 
+    // Support opening in new window/tab
+    if (data.url && data.url.target) {
+      attributes.target = data.url.target;
+    }
+
     if ( !data.element ) {
       var range = selection.getRanges( 1 )[ 0 ];
 
