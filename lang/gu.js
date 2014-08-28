@@ -1,6 +1,6 @@
 ﻿/**
- * @license Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.html or http://ckeditor.com/license
+ * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
 /**
@@ -18,16 +18,9 @@
  * @namespace
  */
 CKEDITOR.lang[ 'gu' ] = {
-	/**
-	 * The language reading direction. Possible values are "rtl" for
-	 * Right-To-Left languages (like Arabic) and "ltr" for Left-To-Right
-	 * languages (like English).
-	 * @default 'ltr'
-	 */
-	dir: 'ltr',
-
 	// ARIA description.
 	editor: 'રીચ ટેક્ષ્ત્ એડીટર',
+	editorPanel: 'Rich Text Editor panel', // MISSING
 
 	// Common messages and labels.
 	common: {
@@ -88,9 +81,11 @@ CKEDITOR.lang[ 'gu' ] = {
 		alignLeft: 'ડાબી બાજુ ગોઠવવું',
 		alignRight: 'જમણી',
 		alignCenter: 'મધ્ય સેન્ટર',
+		alignJustify: 'બ્લૉક, અંતરાય જસ્ટિફાઇ',
 		alignTop: 'ઉપર',
 		alignMiddle: 'વચ્ચે',
 		alignBottom: 'નીચે',
+		alignNone: 'None', // MISSING
 		invalidValue	: 'Invalid value.', // MISSING
 		invalidHeight: 'ઉંચાઈ એક આંકડો હોવો જોઈએ.',
 		invalidWidth: 'પોહળ ઈ એક આંકડો હોવો જોઈએ.',

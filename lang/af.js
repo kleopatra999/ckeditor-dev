@@ -1,6 +1,6 @@
 ﻿/**
- * @license Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.html or http://ckeditor.com/license
+ * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
 /**
@@ -18,16 +18,9 @@
  * @namespace
  */
 CKEDITOR.lang[ 'af' ] = {
-	/**
-	 * The language reading direction. Possible values are "rtl" for
-	 * Right-To-Left languages (like Arabic) and "ltr" for Left-To-Right
-	 * languages (like English).
-	 * @default 'ltr'
-	 */
-	dir: 'ltr',
-
 	// ARIA description.
 	editor: 'Teksverwerker',
+	editorPanel: 'Rich Text Editor panel', // MISSING
 
 	// Common messages and labels.
 	common: {
@@ -88,9 +81,11 @@ CKEDITOR.lang[ 'af' ] = {
 		alignLeft: 'Links',
 		alignRight: 'Regs',
 		alignCenter: 'Sentreer',
+		alignJustify: 'Uitvul',
 		alignTop: 'Bo',
 		alignMiddle: 'Middel',
 		alignBottom: 'Onder',
+		alignNone: 'None', // MISSING
 		invalidValue	: 'Invalid value.', // MISSING
 		invalidHeight: 'Hoogte moet \'n getal wees',
 		invalidWidth: 'Breedte moet \'n getal wees.',

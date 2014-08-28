@@ -1,6 +1,6 @@
 ﻿/**
- * @license Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.html or http://ckeditor.com/license
+ * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
 /**
@@ -18,16 +18,9 @@
  * @namespace
  */
 CKEDITOR.lang[ 'sk' ] = {
-	/**
-	 * The language reading direction. Possible values are "rtl" for
-	 * Right-To-Left languages (like Arabic) and "ltr" for Left-To-Right
-	 * languages (like English).
-	 * @default 'ltr'
-	 */
-	dir: 'ltr',
-
 	// ARIA description.
 	editor: 'Editor formátovaného textu',
+	editorPanel: 'Rich Text Editor panel', // MISSING
 
 	// Common messages and labels.
 	common: {
@@ -88,16 +81,18 @@ CKEDITOR.lang[ 'sk' ] = {
 		alignLeft: 'Vľavo',
 		alignRight: 'Vpravo',
 		alignCenter: 'Na stred',
+		alignJustify: 'Zarovnať do bloku',
 		alignTop: 'Nahor',
 		alignMiddle: 'Na stred',
 		alignBottom: 'Dole',
+		alignNone: 'None', // MISSING
 		invalidValue	: 'Neplatná hodnota.',
 		invalidHeight: 'Výška musí byť číslo.',
 		invalidWidth: 'Šírka musí byť číslo.',
 		invalidCssLength: 'Špecifikovaná hodnota pre pole "%1" musí byť kladné číslo s alebo bez platnej CSS mernej jednotky (px, %, in, cm, mm, em, ex, pt alebo pc).',
 		invalidHtmlLength: 'Špecifikovaná hodnota pre pole "%1" musí byť kladné číslo s alebo bez platnej HTML mernej jednotky (px alebo %).',
 		invalidInlineStyle: 'Zadaná hodnota pre inline štýl musí pozostávať s jedného, alebo viac dvojíc formátu "názov: hodnota", oddelených bodkočiarkou.',
-		cssLengthTooltip: 'Vložte číslo pre hodnotu v pixeloch alebo číslo so správnou CSS jednotou (px, %, in, cm, mm, em, ex, pt, or pc).',
+		cssLengthTooltip: 'Vložte číslo pre hodnotu v pixeloch alebo číslo so správnou CSS jednotou (px, %, in, cm, mm, em, ex, pt alebo pc).',
 
 		// Put the voice-only part of the label in the span.
 		unavailable: '%1<span class="cke_accessibility">, nedostupný</span>'

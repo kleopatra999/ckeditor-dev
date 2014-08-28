@@ -1,6 +1,6 @@
 ﻿/**
- * @license Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.html or http://ckeditor.com/license
+ * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
 /**
@@ -9,11 +9,7 @@
  */
 
 // #### Compressed Code
-// Must be updated on changes in the script as well as updated in the
-// ckeditor_source.js and ckeditor_basic_source.js files.
-
-// window.CKEDITOR||(window.CKEDITOR=function(){var c={timestamp:"",version:"%VERSION%",revision:"%REV%",rnd:Math.floor(900*Math.random())+100,_:{pending:[]},status:"unloaded",basePath:function(){var a=window.CKEDITOR_BASEPATH||"";if(!a)for(var d=document.getElementsByTagName("script"),b=0;b<d.length;b++){var e=d[b].src.match(/(^|.*[\\\/])ckeditor(?:_basic)?(?:_source)?.js(?:\?.*)?$/i);if(e){a=e[1];break}}-1==a.indexOf(":/")&&(a=0===a.indexOf("/")?location.href.match(/^.*?:\/\/[^\/]*/)[0]+a:location.href.match(/^[^\?]*\/(?:)/)[0]+ a);if(!a)throw'The CKEditor installation path could not be automatically detected. Please set the global variable "CKEDITOR_BASEPATH" before creating editor instances.';return a}(),getUrl:function(a){-1==a.indexOf(":/")&&0!==a.indexOf("/")&&(a=this.basePath+a);this.timestamp&&("/"!=a.charAt(a.length-1)&&!/[&?]t=/.test(a))&&(a+=(0<=a.indexOf("?")?"&":"?")+"t="+this.timestamp);return a},domReady:function(){function a(){try{document.addEventListener?document.removeEventListener("DOMContentLoaded",a, !1):document.attachEvent&&document.detachEvent("onreadystatechange",a)}catch(b){}for(var e;e=d.shift();)e()}var d=[];return function(b){d.push(b);"complete"===document.readyState&&setTimeout(a,1);if(1==d.length)if(document.addEventListener)document.addEventListener("DOMContentLoaded",a,!1),window.addEventListener("load",a,!1);else if(document.attachEvent){document.attachEvent("onreadystatechange",a);window.attachEvent("onload",a);b=!1;try{b=!window.frameElement}catch(e){}if(document.documentElement.doScroll&& b){var c=function(){try{document.documentElement.doScroll("left")}catch(b){setTimeout(c,1);return}a()};c()}}}}()},f=window.CKEDITOR_GETURL;if(f){var g=c.url;c.url=function(a){return f.call(c,a)||g.call(c,a)}}return c}());
-
+// Compressed code in ckeditor.js must be be updated on changes in the script.
 // The Closure Compiler online service should be used when updating this manually:
 // http://closure-compiler.appspot.com/
 
@@ -26,7 +22,9 @@ if ( !window.CKEDITOR ) {
 	 * @class CKEDITOR
 	 * @singleton
 	 */
-	window.CKEDITOR = (function() {
+	window.CKEDITOR = ( function() {
+		var basePathSrcPattern = /(^|.*[\\\/])ckeditor\.js(?:\?.*|;.*)?$/i;
+
 		var CKEDITOR = {
 
 			/**
@@ -78,7 +76,8 @@ if ( !window.CKEDITOR ) {
 			 * @private
 			 */
 			_: {
-				pending: []
+				pending: [],
+				basePathSrcPattern: basePathSrcPattern
 			},
 
 			/**
@@ -112,10 +111,7 @@ if ( !window.CKEDITOR ) {
 			 *
 			 * @property {String}
 			 */
-			basePath: (function() {
-				// ATTENTION: fixes to this code must be ported to
-				// var basePath in "core/loader.js".
-
+			basePath: ( function() {
 				// Find out the editor directory path, based on its <script> tag.
 				var path = window.CKEDITOR_BASEPATH || '';
 
@@ -123,7 +119,7 @@ if ( !window.CKEDITOR ) {
 					var scripts = document.getElementsByTagName( 'script' );
 
 					for ( var i = 0; i < scripts.length; i++ ) {
-						var match = scripts[ i ].src.match( /(^|.*[\\\/])ckeditor(?:_basic)?(?:_source)?.js(?:\?.*)?$/i );
+						var match = scripts[ i ].src.match( basePathSrcPattern );
 
 						if ( match ) {
 							path = match[ 1 ];
@@ -134,7 +130,7 @@ if ( !window.CKEDITOR ) {
 
 				// In IE (only) the script.src string is the raw value entered in the
 				// HTML source. Other browsers return the full resolved URL instead.
-				if ( path.indexOf( ':/' ) == -1 ) {
+				if ( path.indexOf( ':/' ) == -1 && path.slice( 0, 2 ) != '//' ) {
 					// Absolute path.
 					if ( path.indexOf( '/' ) === 0 )
 						path = location.href.match( /^.*?:\/\/[^\/]*/ )[ 0 ] + path;
@@ -147,7 +143,7 @@ if ( !window.CKEDITOR ) {
 					throw 'The CKEditor installation path could not be automatically detected. Please set the global variable "CKEDITOR_BASEPATH" before creating editor instances.';
 
 				return path;
-			})(),
+			} )(),
 
 			/**
 			 * Gets the full URL for CKEditor resources. By default, URLs
@@ -194,7 +190,7 @@ if ( !window.CKEDITOR ) {
 			 * @method
 			 * @todo
 			 */
-			domReady: (function() {
+			domReady: ( function() {
 				// Based on the original jQuery code.
 
 				var callbacks = [];
@@ -276,21 +272,21 @@ if ( !window.CKEDITOR ) {
 					}
 				};
 
-			})()
+			} )()
 		};
 
 		// Make it possible to override the "url" function with a custom
 		// implementation pointing to a global named CKEDITOR_GETURL.
 		var newGetUrl = window.CKEDITOR_GETURL;
 		if ( newGetUrl ) {
-			var originalGetUrl = CKEDITOR.url;
-			CKEDITOR.url = function( resource ) {
+			var originalGetUrl = CKEDITOR.getUrl;
+			CKEDITOR.getUrl = function( resource ) {
 				return newGetUrl.call( CKEDITOR, resource ) || originalGetUrl.call( CKEDITOR, resource );
 			};
 		}
 
 		return CKEDITOR;
-	})();
+	} )();
 }
 
 /**

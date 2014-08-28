@@ -1,6 +1,6 @@
 ﻿/*
-Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
-For licensing, see LICENSE.html or http://ckeditor.com/license
+Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+For licensing, see LICENSE.md or http://ckeditor.com/license
 */
 CKEDITOR.plugins.setLang( 'toolbar', 'fa', {
 	toolbarCollapse: 'بستن نوار ابزار',
@@ -9,14 +9,14 @@ CKEDITOR.plugins.setLang( 'toolbar', 'fa', {
 		document: 'سند',
 		clipboard: 'حافظه موقت/برگشت',
 		editing: 'در حال ویرایش',
-		forms: 'فرمها',
-		basicstyles: 'شیوههای پایه',
+		forms: 'فرم​ها',
+		basicstyles: 'سبک‌های پایه',
 		paragraph: 'بند',
 		links: 'پیوندها',
 		insert: 'ورود',
-		styles: 'شیوهها',
-		colors: 'رنگها',
+		styles: 'سبک‌ها',
+		colors: 'رنگ​ها',
 		tools: 'ابزارها'
 	},
-	toolbars: 'نوار ابزار'
-});
+	toolbars: 'نوار ابزارهای ویرایش‌گر'
+} );

@@ -1,6 +1,6 @@
 ﻿/**
- * @license Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.html or http://ckeditor.com/license
+ * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
 CKEDITOR.dialog.add( 'colordialog', function( editor ) {
@@ -123,9 +123,9 @@ CKEDITOR.dialog.add( 'colordialog', function( editor ) {
 				// relative is TR
 				if ( ( relative = element.getParent().getNext() ) ) {
 					nodeToMove = relative.getChild( [ element.getIndex() ] );
-					if ( nodeToMove && nodeToMove.type == 1 ) {
+					if ( nodeToMove && nodeToMove.type == 1 )
 						nodeToMove.focus();
-					}
+
 				}
 				domEvt.preventDefault();
 				break;
@@ -139,8 +139,7 @@ CKEDITOR.dialog.add( 'colordialog', function( editor ) {
 				break;
 
 				// RIGHT-ARROW
-			case rtl ? 37:
-				39 :
+			case rtl ? 37 : 39:
 				// relative is TD
 				if ( ( nodeToMove = element.getNext() ) ) {
 					if ( nodeToMove.type == 1 ) {
@@ -159,8 +158,7 @@ CKEDITOR.dialog.add( 'colordialog', function( editor ) {
 				break;
 
 				// LEFT-ARROW
-			case rtl ? 39:
-				37 :
+			case rtl ? 39 : 37:
 				// relative is TD
 				if ( ( nodeToMove = element.getPrevious() ) ) {
 					nodeToMove.focus();
@@ -311,7 +309,7 @@ CKEDITOR.dialog.add( 'colordialog', function( editor ) {
 						label: lang.selected,
 						labelStyle: 'display:none',
 						id: 'selectedColor',
-						style: 'width: 74px',
+						style: 'width: 76px;margin-top:4px',
 						onChange: function() {
 							// Try to update color preview with new value. If fails, then set it no none.
 							try {
@@ -325,7 +323,6 @@ CKEDITOR.dialog.add( 'colordialog', function( editor ) {
 					{
 						type: 'button',
 						id: 'clear',
-						style: 'margin-top: 5px',
 						label: lang.clear,
 						onClick: clearSelected
 					}
@@ -337,4 +334,4 @@ CKEDITOR.dialog.add( 'colordialog', function( editor ) {
 		}
 		]
 	};
-});
+} );
