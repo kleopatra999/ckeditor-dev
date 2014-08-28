@@ -1,6 +1,6 @@
 ﻿/**
- * @license Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.html or http://ckeditor.com/license
+ * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
 /**
@@ -40,7 +40,7 @@ CKEDITOR.command = function( editor, commandDefinition ) {
 	 * @returns {Boolean} A boolean indicating that the command has been successfully executed.
 	 */
 	this.exec = function( data ) {
-		if ( this.state == CKEDITOR.TRISTATE_DISABLED )
+		if ( this.state == CKEDITOR.TRISTATE_DISABLED || !this.checkAllowed() )
 			return false;
 
 		if ( this.editorFocus ) // Give editor focus if necessary (#4355).
@@ -54,10 +54,11 @@ CKEDITOR.command = function( editor, commandDefinition ) {
 
 	/**
 	 * Explicitly update the status of the command, by firing the {@link CKEDITOR.command#event-refresh} event,
-	 * as well as invoke the {@link CKEDITOR.command#method-refresh} method if defined, this method
+	 * as well as invoke the {@link CKEDITOR.commandDefinition#refresh} method if defined, this method
 	 * is to allow different parts of the editor code to contribute in command status resolution.
 	 *
-	 * @todo
+	 * @param {CKEDITOR.editor} editor The editor instance.
+	 * @param {CKEDITOR.dom.elementPath} path
 	 */
 	this.refresh = function( editor, path ) {
 		// Do nothing is we're on read-only and this command doesn't support it.
@@ -72,13 +73,43 @@ CKEDITOR.command = function( editor, commandDefinition ) {
 			return true;
 		}
 
-		// Make the "enabled" state as basis.
-		this.enable();
+		// Disable commands that are not allowed by the active filter.
+		if ( !this.checkAllowed( true ) ) {
+			this.disable();
+			return true;
+		}
+
+		// Make the "enabled" state a default for commands enabled from start.
+		if ( !this.startDisabled )
+			this.enable();
+
+		// Disable commands which shouldn't be enabled in this mode.
+		if ( this.modes && !this.modes[ editor.mode ] )
+			this.disable();
 
 		if ( this.fire( 'refresh', { editor: editor, path: path } ) === false )
 			return true;
 
 		return ( commandDefinition.refresh && commandDefinition.refresh.apply( this, arguments ) !== false );
+	};
+
+	var allowed;
+
+	/**
+	 * Checks whether this command is allowed by the active allowed
+	 * content filter ({@link CKEDITOR.editor#activeFilter}). This means
+	 * that if command implements {@link CKEDITOR.feature} interface it will be tested
+	 * by the {@link CKEDITOR.filter#checkFeature} method.
+	 *
+	 * @since 4.1
+	 * @param {Boolean} [noCache] Skip cache for example due to active filter change. Since CKEditor 4.2.
+	 * @returns {Boolean} Whether this command is allowed.
+	 */
+	this.checkAllowed = function( noCache ) {
+		if ( !noCache && typeof allowed == 'boolean' )
+			return allowed;
+
+		return allowed = editor.activeFilter.checkFeature( this );
 	};
 
 	CKEDITOR.tools.extend( this, commandDefinition, {
@@ -95,7 +126,7 @@ CKEDITOR.command = function( editor, commandDefinition ) {
 		 *
 		 * @see CKEDITOR.editor#mode
 		 */
-		modes: { wysiwyg:1 },
+		modes: { wysiwyg: 1 },
 
 		/**
 		 * Indicates that the editor will get the focus before executing
@@ -132,10 +163,10 @@ CKEDITOR.command = function( editor, commandDefinition ) {
 		 *		if ( command.state == CKEDITOR.TRISTATE_DISABLED )
 		 *			alert( 'This command is disabled' );
 		 *
-		 * @property {Number} [=CKEDITOR.TRISTATE_OFF]
+		 * @property {Number} [=CKEDITOR.TRISTATE_DISABLED]
 		 */
-		state: CKEDITOR.TRISTATE_OFF
-	});
+		state: CKEDITOR.TRISTATE_DISABLED
+	} );
 
 	// Call the CKEDITOR.event constructor to initialize this instance.
 	CKEDITOR.event.call( this );
@@ -150,7 +181,7 @@ CKEDITOR.command.prototype = {
 	 *		command.exec(); // Execute the command.
 	 */
 	enable: function() {
-		if ( this.state == CKEDITOR.TRISTATE_DISABLED )
+		if ( this.state == CKEDITOR.TRISTATE_DISABLED && this.checkAllowed() )
 			this.setState( ( !this.preserveState || ( typeof this.previousState == 'undefined' ) ) ? CKEDITOR.TRISTATE_OFF : this.previousState );
 	},
 
@@ -181,6 +212,9 @@ CKEDITOR.command.prototype = {
 	setState: function( newState ) {
 		// Do nothing if there is no state change.
 		if ( this.state == newState )
+			return false;
+
+		if ( newState != CKEDITOR.TRISTATE_DISABLED && !this.checkAllowed() )
 			return false;
 
 		this.previousState = this.state;

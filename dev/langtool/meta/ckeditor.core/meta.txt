@@ -1,8 +1,8 @@
-# Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
-# For licensing, see LICENSE.html or http://ckeditor.com/license
+# Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+# For licensing, see LICENSE.md or http://ckeditor.com/license
 
-dir = The language reading direction. Possible values are "rtl" for Right-To-Left languages (like Arabic) and "ltr" for Left-To-Right languages (like English).
 editor = ARIA description for the editor.
+editorPanel = 
 common.editorHelp = 
 common.browseServer = Button label for the file browser.
 common.url = Label for the URL field of a dialog window.
@@ -60,6 +60,7 @@ common.alignCenter = Center alignment option text.
 common.alignTop = Top alignment option text.
 common.alignMiddle = Middle alignment option text.
 common.alignBottom = Bottom alignment option text.
+common.alignNone = No alignment option text.
 common.invalidValue = 
 common.invalidHeight = Error message displayed to the user when the specified height value is invalid.
 common.invalidWidth = Error message displayed to the user when the specified width value is invalid.

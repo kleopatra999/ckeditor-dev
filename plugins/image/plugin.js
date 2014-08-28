@@ -1,50 +1,69 @@
 ﻿/**
- * @license Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.html or http://ckeditor.com/license
+ * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
 /**
  * @fileOverview Image plugin
  */
 
-(function() {
+( function() {
 
 	CKEDITOR.plugins.add( 'image', {
 		requires: 'dialog',
-		lang: 'af,ar,bg,bn,bs,ca,cs,cy,da,de,el,en-au,en-ca,en-gb,en,eo,es,et,eu,fa,fi,fo,fr-ca,fr,gl,gu,he,hi,hr,hu,is,it,ja,ka,km,ko,ku,lt,lv,mk,mn,ms,nb,nl,no,pl,pt-br,pt,ro,ru,sk,sl,sr-latn,sr,sv,th,tr,ug,uk,vi,zh-cn,zh', // %REMOVE_LINE_CORE%
+		lang: 'af,ar,bg,bn,bs,ca,cs,cy,da,de,el,en,en-au,en-ca,en-gb,eo,es,et,eu,fa,fi,fo,fr,fr-ca,gl,gu,he,hi,hr,hu,id,is,it,ja,ka,km,ko,ku,lt,lv,mk,mn,ms,nb,nl,no,pl,pt,pt-br,ro,ru,si,sk,sl,sq,sr,sr-latn,sv,th,tr,tt,ug,uk,vi,zh,zh-cn', // %REMOVE_LINE_CORE%
 		icons: 'image', // %REMOVE_LINE_CORE%
+		hidpi: true, // %REMOVE_LINE_CORE%
 		init: function( editor ) {
+			// Abort when Image2 is to be loaded since both plugins
+			// share the same button, command, etc. names (#11222).
+			if ( editor.plugins.image2 )
+				return;
+
 			var pluginName = 'image';
 
 			// Register the dialog.
 			CKEDITOR.dialog.add( pluginName, this.path + 'dialogs/image.js' );
 
+			var allowed = 'img[alt,!src]{border-style,border-width,float,height,margin,margin-bottom,margin-left,margin-right,margin-top,width}',
+				required = 'img[alt,src]';
+
+			if ( CKEDITOR.dialog.isTabEnabled( editor, pluginName, 'advanced' ) )
+				allowed = 'img[alt,dir,id,lang,longdesc,!src,title]{*}(*)';
+
 			// Register the command.
-			editor.addCommand( pluginName, new CKEDITOR.dialogCommand( pluginName ) );
+			editor.addCommand( pluginName, new CKEDITOR.dialogCommand( pluginName, {
+				allowedContent: allowed,
+				requiredContent: required,
+				contentTransformations: [
+					[ 'img{width}: sizeToStyle', 'img[width]: sizeToAttribute' ],
+					[ 'img{float}: alignmentToStyle', 'img[align]: alignmentToAttribute' ]
+				]
+			} ) );
 
 			// Register the toolbar button.
 			editor.ui.addButton && editor.ui.addButton( 'Image', {
 				label: editor.lang.common.image,
 				command: pluginName,
 				toolbar: 'insert,10'
-			});
+			} );
 
 			editor.on( 'doubleclick', function( evt ) {
 				var element = evt.data.element;
 
 				if ( element.is( 'img' ) && !element.data( 'cke-realelement' ) && !element.isReadOnly() )
 					evt.data.dialog = 'image';
-			});
+			} );
 
 			// If the "menu" plugin is loaded, register the menu items.
 			if ( editor.addMenuItems ) {
-				editor.addMenuItems({
+				editor.addMenuItems( {
 					image: {
 						label: editor.lang.image.menu,
 						command: 'image',
 						group: 'image'
 					}
-				});
+				} );
 			}
 
 			// If the "contextmenu" plugin is loaded, register the listeners.
@@ -52,10 +71,15 @@
 				editor.contextMenu.addListener( function( element, selection ) {
 					if ( getSelectedImage( editor, element ) )
 						return { image: CKEDITOR.TRISTATE_OFF };
-				});
+				} );
 			}
 		},
 		afterInit: function( editor ) {
+			// Abort when Image2 is to be loaded since both plugins
+			// share the same button, command, etc. names (#11222).
+			if ( editor.plugins.image2 )
+				return;
+
 			// Customize the behavior of the alignment commands. (#7430)
 			setupAlignCommand( 'left' );
 			setupAlignCommand( 'right' );
@@ -82,7 +106,7 @@
 
 								evt.cancel();
 							}
-						});
+						} );
 					}
 
 					command.on( 'refresh', function( evt ) {
@@ -96,11 +120,11 @@
 
 							evt.cancel();
 						}
-					});
+					} );
 				}
 			}
 		}
-	});
+	} );
 
 	function getSelectedImage( editor, element ) {
 		if ( !element ) {
@@ -124,7 +148,7 @@
 		return align;
 	}
 
-})();
+} )();
 
 /**
  * Whether to remove links when emptying the link URL field in the image dialog.

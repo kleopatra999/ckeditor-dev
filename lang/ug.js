@@ -1,11 +1,11 @@
 ﻿/**
- * @license Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.html or http://ckeditor.com/license
+ * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
 /**
-* @fileOverview 
-*/
+ * @fileOverview
+ */
 
 /**#@+
    @type String
@@ -17,16 +17,9 @@
  * @namespace
  */
 CKEDITOR.lang[ 'ug' ] = {
-	/**
-	 * The language reading direction. Possible values are "rtl" for
-	 * Right-To-Left languages (like Arabic) and "ltr" for Left-To-Right
-	 * languages (like English).
-	 * @default 'ltr'
-	 */
-	dir: 'rtl',
-
 	// ARIA description.
 	editor: 'تەھرىرلىگۈچ',
+	editorPanel: 'Rich Text Editor panel', // MISSING
 
 	// Common messages and labels.
 	common: {
@@ -87,10 +80,12 @@ CKEDITOR.lang[ 'ug' ] = {
 		alignLeft: 'سول',
 		alignRight: 'ئوڭ',
 		alignCenter: 'ئوتتۇرا',
+		alignJustify: 'ئىككى تەرەپتىن توغرىلا',
 		alignTop: 'ئۈستى',
 		alignMiddle: 'ئوتتۇرا',
 		alignBottom: 'ئاستى',
-		invalidValue	: 'Invalid value.', // MISSING
+		alignNone: 'None', // MISSING
+		invalidValue	: 'ئىناۋەتسىز قىممەت.',
 		invalidHeight: 'ئېگىزلىك چوقۇم رەقەم پىچىمىدا بولۇشى زۆرۈر',
 		invalidWidth: 'كەڭلىك چوقۇم رەقەم پىچىمىدا بولۇشى زۆرۈر',
 		invalidCssLength: 'بۇ سۆز بۆلىكى چوقۇم مۇۋاپىق بولغان CSS ئۇزۇنلۇق قىممىتى بولۇشى زۆرۈر، بىرلىكى (px, %, in, cm, mm, em, ex, pt ياكى pc)',

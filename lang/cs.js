@@ -1,6 +1,6 @@
 ﻿/**
- * @license Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.html or http://ckeditor.com/license
+ * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
 /**
@@ -18,16 +18,9 @@
  * @namespace
  */
 CKEDITOR.lang[ 'cs' ] = {
-	/**
-	 * The language reading direction. Possible values are "rtl" for
-	 * Right-To-Left languages (like Arabic) and "ltr" for Left-To-Right
-	 * languages (like English).
-	 * @default 'ltr'
-	 */
-	dir: 'ltr',
-
 	// ARIA description.
 	editor: 'Textový editor',
+	editorPanel: 'Panel textového editoru',
 
 	// Common messages and labels.
 	common: {
@@ -88,9 +81,11 @@ CKEDITOR.lang[ 'cs' ] = {
 		alignLeft: 'Vlevo',
 		alignRight: 'Vpravo',
 		alignCenter: 'Na střed',
+		alignJustify: 'Zarovnat do bloku',
 		alignTop: 'Nahoru',
 		alignMiddle: 'Na střed',
 		alignBottom: 'Dolů',
+		alignNone: 'Žádné',
 		invalidValue	: 'Neplatná hodnota.',
 		invalidHeight: 'Zadaná výška musí být číslo.',
 		invalidWidth: 'Šířka musí být číslo.',

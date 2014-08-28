@@ -1,9 +1,9 @@
 ﻿/**
- * @license Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.html or http://ckeditor.com/license
+ * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
-(function() {
+( function() {
 	var fragmentPrototype = CKEDITOR.htmlParser.fragment.prototype,
 		elementPrototype = CKEDITOR.htmlParser.element.prototype;
 
@@ -86,7 +86,7 @@
 
 		styleText = ( isPrepend ? [ addingStyleText, styleText ] : [ styleText, addingStyleText ] ).join( ';' );
 
-		this.attributes.style = styleText.replace( /^;|;(?=;)/, '' );
+		this.attributes.style = styleText.replace( /^;+|;(?=;)/g, '' );
 	};
 
 	// Retrieve a style property value of the element.
@@ -243,7 +243,7 @@
 								previousListItemMargin = margin;
 
 								attrs[ 'cke:indent' ] = listBaseIndent && ( Math.ceil( margin / listBaseIndent ) + 1 ) || 1;
-							}],
+							} ],
 							// The best situation: "mso-list:l0 level1 lfo2" tells the belonged list root, list item indentation, etc.
 							[ ( /^mso-list$/ ), null, function( val ) {
 								val = val.split( ' ' );
@@ -255,7 +255,7 @@
 									previousListId = listId;
 								}
 								attrs[ 'cke:indent' ] = indent;
-							}]
+							} ]
 						] )( attrs.style, element ) || '';
 					}
 
@@ -280,7 +280,7 @@
 			},
 
 			// Providing a shorthand style then retrieve one or more style component values.
-			getStyleComponents: (function() {
+			getStyleComponents: ( function() {
 				var calculator = CKEDITOR.dom.element.createFromHtml( '<div style="position:absolute;left:-9999px;top:-9999px;"></div>', CKEDITOR.document );
 				CKEDITOR.document.getBody().append( calculator );
 
@@ -293,7 +293,7 @@
 
 					return styles;
 				};
-			})(),
+			} )(),
 
 			listDtdParents: CKEDITOR.dtd.parentOf( 'ol' )
 		},
@@ -350,13 +350,13 @@
 							[ 'tab-stops', null, function( val ) {
 								var margin = val.split( ' ' )[ 1 ].match( cssLengthRelativeUnit );
 								margin && ( previousListItemMargin = CKEDITOR.tools.convertToPx( margin[ 0 ] ) );
-							}],
+							} ],
 							( level == 1 ? [ 'mso-list', null, function( val ) {
 								val = val.split( ' ' );
 								var listId = Number( val[ 0 ].match( /\d+/ ) );
 								listId !== previousListId && ( attributes[ 'cke:reset' ] = 1 );
 								previousListId = listId;
-							}] : null )
+							} ] : null )
 						] )( attributes.style );
 
 						attributes[ 'cke:indent' ] = level;
@@ -371,6 +371,8 @@
 						element.children = [];
 						for ( var j = 0, num = children.length; j < num; j++ )
 							element.add( children[ j ] );
+
+						children = element.children;
 					}
 				}
 
@@ -573,7 +575,7 @@
 
 						!whitelist && rules.push( [ name, value ] );
 
-					});
+					} );
 
 					for ( var i = 0; i < rules.length; i++ )
 						rules[ i ] = rules[ i ].join( ':' );
@@ -590,7 +592,7 @@
 					element.name = styleDef.element;
 					CKEDITOR.tools.extend( element.attributes, CKEDITOR.tools.clone( styleDef.attributes ) );
 					element.addStyle( CKEDITOR.style.getStyleText( styleDef ) );
-				} : function(){};
+				} : function() {};
 			},
 
 			// Migrate styles by creating a new nested stylish element.
@@ -608,7 +610,15 @@
 					// Place the new element inside the existing span.
 					styleElement.children = element.children;
 					element.children = [ styleElement ];
-				} : function(){};
+
+					// #10285 - later on styleElement will replace element if element won't have any attributes.
+					// However, in some cases styleElement is identical to element and therefore should not be filtered
+					// to avoid inf loop. Unfortunately calling element.filterChildren() does not prevent from that (#10327).
+					// However, we can assume that we don't need to filter styleElement at all, so it is safe to replace
+					// its filter method.
+					styleElement.filter = function() {};
+					styleElement.parent = element;
+				} : function() {};
 			},
 
 			// A filter which remove cke-namespaced-attribute on
@@ -626,7 +636,7 @@
 
 		},
 
-		getRules: function( editor ) {
+		getRules: function( editor, filter ) {
 			var dtd = CKEDITOR.dtd,
 				blockLike = CKEDITOR.tools.extend( {}, dtd.$block, dtd.$listItem, dtd.$tableContent ),
 				config = editor.config,
@@ -658,7 +668,7 @@
 				],
 
 				root: function( element ) {
-					element.filterChildren();
+					element.filterChildren( filter );
 					assembleList( element );
 				},
 
@@ -676,13 +686,12 @@
 
 						// Convert length unit of width/height on blocks to
 						// a more editor-friendly way (px).
-						if ( tagName in blockLike && attrs.style ) {
+						if ( tagName in blockLike && attrs.style )
 							attrs.style = stylesFilter( [ [ ( /^(:?width|height)$/ ), null, convertToPx ] ] )( attrs.style ) || '';
-						}
 
 						// Processing headings.
 						if ( tagName.match( /h\d/ ) ) {
-							element.filterChildren();
+							element.filterChildren( filter );
 							// Is the heading actually a list item?
 							if ( resolveListItem( element ) )
 								return;
@@ -692,14 +701,14 @@
 						}
 						// Remove inline elements which contain only empty spaces.
 						else if ( tagName in dtd.$inline ) {
-							element.filterChildren();
+							element.filterChildren( filter );
 							if ( containsNothingButSpaces( element ) )
 								delete element.name;
 						}
 						// Remove element with ms-office namespace,
 						// with it's content preserved, e.g. 'o:p'.
 						else if ( tagName.indexOf( ':' ) != -1 && tagName.indexOf( 'cke' ) == -1 ) {
-							element.filterChildren();
+							element.filterChildren( filter );
 
 							// Restore image real link from vml.
 							if ( tagName == 'v:imagedata' ) {
@@ -714,7 +723,7 @@
 
 						// Assembling list items into a whole list.
 						if ( tagName in listDtdParents ) {
-							element.filterChildren();
+							element.filterChildren( filter );
 							assembleList( element );
 						}
 					},
@@ -755,9 +764,9 @@
 												rules[ tagName ][ className ] = styleBlock;
 											else
 												rules[ tagName ] = styleBlock;
-										});
+										} );
 									}
-								});
+								} );
 
 								filters.applyStyleFilter = function( element ) {
 									var name = rules[ '*' ] ? '*' : element.name,
@@ -784,15 +793,15 @@
 						if ( ( /MsoListParagraph/i ).exec( element.attributes[ 'class' ] ) || element.getStyle( 'mso-list' ) ) {
 							var bulletText = element.firstChild( function( node ) {
 								return node.type == CKEDITOR.NODE_TEXT && !containsNothingButSpaces( node.parent );
-							});
+							} );
 
 							var bullet = bulletText && bulletText.parent;
-							if ( bullet ) {
+							if ( bullet )
 								bullet.addStyle( 'mso-list', 'Ignore' );
-							}
+
 						}
 
-						element.filterChildren();
+						element.filterChildren( filter );
 
 						// Is the paragraph actually a list item?
 						if ( resolveListItem( element ) )
@@ -844,7 +853,7 @@
 							return;
 						}
 
-						element.filterChildren();
+						element.filterChildren( filter );
 
 						var attrs = element.attributes,
 							styleText = attrs.style,
@@ -858,26 +867,29 @@
 						}
 						// Convert the merged into a span with all attributes preserved.
 						else {
-							styleText = styleText || '';
+							// Use array to avoid string concatenation and get rid of problems with trailing ";" (#12243).
+							styleText = ( styleText || '' ).split( ';' );
+
 							// IE's having those deprecated attributes, normalize them.
 							if ( attrs.color ) {
-								attrs.color != '#000000' && ( styleText += 'color:' + attrs.color + ';' );
+								if ( attrs.color != '#000000' )
+									styleText.push( 'color:' + attrs.color );
 								delete attrs.color;
 							}
 							if ( attrs.face ) {
-								styleText += 'font-family:' + attrs.face + ';';
+								styleText.push( 'font-family:' + attrs.face );
 								delete attrs.face;
 							}
 							// TODO: Mapping size in ranges of xx-small,
 							// x-small, small, medium, large, x-large, xx-large.
 							if ( attrs.size ) {
-								styleText += 'font-size:' +
-									( attrs.size > 3 ? 'large' : ( attrs.size < 3 ? 'small' : 'medium' ) ) + ';';
+								styleText.push( 'font-size:' +
+									( attrs.size > 3 ? 'large' : ( attrs.size < 3 ? 'small' : 'medium' ) ) );
 								delete attrs.size;
 							}
 
 							element.name = 'span';
-							element.addStyle( styleText );
+							element.addStyle( styleText.join( ';' ) );
 						}
 					},
 
@@ -886,7 +898,7 @@
 						if ( isListBulletIndicator( element.parent ) )
 							return false;
 
-						element.filterChildren();
+						element.filterChildren( filter );
 						if ( containsNothingButSpaces( element ) ) {
 							delete element.name;
 							return null;
@@ -897,7 +909,7 @@
 						if ( isListBulletIndicator( element ) ) {
 							var listSymbolNode = element.firstChild( function( node ) {
 								return node.value || node.name == 'img';
-							});
+							} );
 
 							var listSymbol = listSymbolNode && ( listSymbolNode.value || 'l.' ),
 								listType = listSymbol && listSymbol.match( /^(?:[(]?)([^\s]+?)([.)]?)$/ );
@@ -942,21 +954,20 @@
 					},
 
 					// Migrate basic style formats to editor configured ones.
-					'b': elementMigrateFilter( config[ 'coreStyles_bold' ] ),
-					'i': elementMigrateFilter( config[ 'coreStyles_italic' ] ),
-					'u': elementMigrateFilter( config[ 'coreStyles_underline' ] ),
-					's': elementMigrateFilter( config[ 'coreStyles_strike' ] ),
-					'sup': elementMigrateFilter( config[ 'coreStyles_superscript' ] ),
-					'sub': elementMigrateFilter( config[ 'coreStyles_subscript' ] ),
-					// Editor doesn't support anchor with content currently (#3582),
-					// drop such anchors with content preserved.
-					'a': function( element ) {
+					b: elementMigrateFilter( config[ 'coreStyles_bold' ] ),
+					i: elementMigrateFilter( config[ 'coreStyles_italic' ] ),
+					u: elementMigrateFilter( config[ 'coreStyles_underline' ] ),
+					s: elementMigrateFilter( config[ 'coreStyles_strike' ] ),
+					sup: elementMigrateFilter( config[ 'coreStyles_superscript' ] ),
+					sub: elementMigrateFilter( config[ 'coreStyles_subscript' ] ),
+
+					// Remove full paths from links to anchors.
+					a: function( element ) {
 						var attrs = element.attributes;
-						if ( attrs && !attrs.href && attrs.name )
-							delete element.name;
-						else if ( CKEDITOR.env.webkit && attrs.href && attrs.href.match( /file:\/\/\/[\S]+#/i ) )
-							attrs.href = attrs.href.replace( /file:\/\/\/[^#]+/i, '' );
+						if ( attrs.href && attrs.href.match( /^file:\/\/\/[\S]+#/i ) )
+							attrs.href = attrs.href.replace( /^file:\/\/\/[^#]+/i, '' );
 					},
+
 					'cke:listbullet': function( element ) {
 						if ( element.getAncestor( /h\d/ ) && !config.pasteFromWordNumberedHeadingToList )
 							delete element.name;
@@ -984,13 +995,13 @@
 
 						// Preserve margin-left/right which used as default indent style in the editor.
 						[ ( /^margin$|^margin-(?!bottom|top)/ ), null, function( value, element, name ) {
-							if ( element.name in { p:1,div:1 } ) {
+							if ( element.name in { p: 1, div: 1 } ) {
 								var indentStyleName = config.contentsLangDirection == 'ltr' ? 'margin-left' : 'margin-right';
 
 								// Extract component value from 'margin' shorthand.
-								if ( name == 'margin' ) {
+								if ( name == 'margin' )
 									value = getStyleComponents( name, value, [ indentStyleName ] )[ indentStyleName ];
-								} else if ( name != indentStyleName )
+								else if ( name != indentStyleName )
 									return null;
 
 								if ( value && !emptyMarginRegex.test( value ) )
@@ -998,7 +1009,7 @@
 							}
 
 							return null;
-						}],
+						} ],
 
 						// Preserve clear float style.
 						[ ( /^clear$/ ) ],
@@ -1006,12 +1017,12 @@
 						[ ( /^border.*|margin.*|vertical-align|float$/ ), null, function( value, element ) {
 							if ( element.name == 'img' )
 								return value;
-						}],
+						} ],
 
 						[ ( /^width|height$/ ), null, function( value, element ) {
-							if ( element.name in { table:1,td:1,th:1,img:1 } )
+							if ( element.name in { table: 1, td: 1, th: 1, img: 1 } )
 								return value;
-						}]
+						} ]
 					] :
 					// Otherwise provide a black-list of styles that we remove.
 					[
@@ -1022,7 +1033,7 @@
 								return false;
 							if ( CKEDITOR.env.gecko )
 								return value.replace( /-moz-use-text-color/g, 'transparent' );
-						}],
+						} ],
 						// Remove empty margin values, e.g. 0.00001pt 0em 0pt
 						[ ( /^margin$/ ), emptyMarginRegex ],
 						[ 'text-indent', '0cm' ],
@@ -1091,7 +1102,7 @@
 				} : falsyFilter
 			};
 		}
-	});
+	} );
 
 	// The paste processor here is just a reduced copy of html data processor.
 	var pasteProcessor = function() {
@@ -1132,15 +1143,14 @@
 		//			</span>
 		//			<!--[endif]-->Test3<o:p></o:p>
 		//		</p>
-		if ( CKEDITOR.env.webkit ) {
+		if ( CKEDITOR.env.webkit )
 			data = data.replace( /(class="MsoListParagraph[^>]+><!--\[if !supportLists\]-->)([^<]+<span[^<]+<\/span>)(<!--\[endif\]-->)/gi, '$1<span>$2</span>$3' );
-		}
 
 		var dataProcessor = new pasteProcessor(),
 			dataFilter = dataProcessor.dataFilter;
 
 		// These rules will have higher priorities than default ones.
-		dataFilter.addRules( CKEDITOR.plugins.pastefromword.getRules( editor ) );
+		dataFilter.addRules( CKEDITOR.plugins.pastefromword.getRules( editor, dataFilter ) );
 
 		// Allow extending data filter rules.
 		editor.fire( 'beforeCleanWord', { filter: dataFilter } );
@@ -1164,7 +1174,7 @@
 
 		return data;
 	};
-})();
+} )();
 
 /**
  * Whether to ignore all font related formatting styles, including:

@@ -1,6 +1,6 @@
 /**
- * @license Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.html or http://ckeditor.com/license
+ * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
 var CKBUILDER_CONFIG = {
@@ -8,11 +8,19 @@ var CKBUILDER_CONFIG = {
 	ignore: [
 		'dev',
 		'README.md',
-        '.jslintrc',
+    '.jslintrc',
 		'.gitignore',
 		'.gitattributes',
 		'.mailmap',
-		'.idea'
+		'.idea',
+		'.DS_Store',
+		'tests',
+		'package.json',
+		'bender.js',
+		'.bender',
+		'bender-err.log',
+		'bender-out.log',
+		'node_modules'
 	],
 	plugins: {
 		a11yhelp : 1,
@@ -27,7 +35,7 @@ var CKBUILDER_CONFIG = {
 		colorbutton : 0,
 		colordialog : 0,
 		contextmenu : 1,
-        dialog : 1,
+		dialog : 1,
 		div : 1,
 		elementspath : 1,
 		enterkey : 1,
@@ -54,7 +62,7 @@ var CKBUILDER_CONFIG = {
 		pagebreak : 1,
 		pastefromword : 1,
 		pastetext : 1,
-        popup : 1,
+		popup : 1,
 		preview : 1,
 		print : 1,
 		removeformat : 1,

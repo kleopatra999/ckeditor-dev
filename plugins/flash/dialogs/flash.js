@@ -1,9 +1,9 @@
 ﻿/**
- * @license Copyright (c) 2003-2013, CKSource - Frederico Knabben. All rights reserved.
- * For licensing, see LICENSE.html or http://ckeditor.com/license
+ * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
-(function() {
+( function() {
 	// It is possible to set things in three different places.
 	// 1. As attributes in the object tag.
 	// 2. As param tags under the object tag.
@@ -22,62 +22,62 @@
 	var attributesMap = {
 		id: [ {
 			type: ATTRTYPE_OBJECT, name: 'id'
-		}],
+		} ],
 		classid: [ {
 			type: ATTRTYPE_OBJECT, name: 'classid'
-		}],
+		} ],
 		codebase: [ {
 			type: ATTRTYPE_OBJECT, name: 'codebase'
-		}],
+		} ],
 		pluginspage: [ {
 			type: ATTRTYPE_EMBED, name: 'pluginspage'
-		}],
+		} ],
 		src: [ {
 			type: ATTRTYPE_PARAM, name: 'movie'
 		}, {
 			type: ATTRTYPE_EMBED, name: 'src'
 		}, {
 			type: ATTRTYPE_OBJECT, name: 'data'
-		}],
+		} ],
 		name: [ {
 			type: ATTRTYPE_EMBED, name: 'name'
-		}],
+		} ],
 		align: [ {
 			type: ATTRTYPE_OBJECT, name: 'align'
-		}],
+		} ],
 		'class': [ {
 			type: ATTRTYPE_OBJECT, name: 'class'
 		}, {
 			type: ATTRTYPE_EMBED, name: 'class'
-		}],
+		} ],
 		width: [ {
 			type: ATTRTYPE_OBJECT, name: 'width'
 		}, {
 			type: ATTRTYPE_EMBED, name: 'width'
-		}],
+		} ],
 		height: [ {
 			type: ATTRTYPE_OBJECT, name: 'height'
 		}, {
 			type: ATTRTYPE_EMBED, name: 'height'
-		}],
+		} ],
 		hSpace: [ {
 			type: ATTRTYPE_OBJECT, name: 'hSpace'
 		}, {
 			type: ATTRTYPE_EMBED, name: 'hSpace'
-		}],
+		} ],
 		vSpace: [ {
 			type: ATTRTYPE_OBJECT, name: 'vSpace'
 		}, {
 			type: ATTRTYPE_EMBED, name: 'vSpace'
-		}],
+		} ],
 		style: [ {
 			type: ATTRTYPE_OBJECT, name: 'style'
 		}, {
 			type: ATTRTYPE_EMBED, name: 'style'
-		}],
+		} ],
 		type: [ {
 			type: ATTRTYPE_EMBED, name: 'type'
-		}]
+		} ]
 	};
 
 	var names = [ 'play', 'loop', 'menu', 'quality', 'scale', 'salign', 'wmode', 'bgcolor', 'base', 'flashvars', 'allowScriptAccess', 'allowFullScreen' ];
@@ -86,8 +86,12 @@
 		type: ATTRTYPE_EMBED, name: names[ i ]
 	}, {
 		type: ATTRTYPE_PARAM, name: names[ i ]
-	}];
-	names = [ 'allowFullScreen', 'play', 'loop', 'menu' ];
+	} ];
+
+	// These attributes are "true" by default and not present in editor data (when "true").
+	// Note that, though default value of "allowFullScreen" is "true", it is not listed here.
+	// "allowFullScreen" is present in editor data regardless of the value (#7634).
+	names = [ 'play', 'loop', 'menu' ];
 	for ( i = 0; i < names.length; i++ )
 		attributesMap[ names[ i ] ][ 0 ][ 'default' ] = attributesMap[ names[ i ] ][ 1 ][ 'default' ] = true;
 
@@ -177,7 +181,7 @@
 							paramMap[ attrDef.name ].setAttribute( 'value', value );
 						else {
 							var param = CKEDITOR.dom.element.createFromHtml( '<cke:param></cke:param>', objectNode.getDocument() );
-							param.setAttributes({ name: attrDef.name, value: value } );
+							param.setAttributes( { name: attrDef.name, value: value } );
 							if ( objectNode.getChildCount() < 1 )
 								param.appendTo( objectNode );
 							else
@@ -262,10 +266,10 @@
 					}
 					if ( makeEmbedTag ) {
 						embedNode = CKEDITOR.dom.element.createFromHtml( '<cke:embed></cke:embed>', editor.document );
-						embedNode.setAttributes({
+						embedNode.setAttributes( {
 							type: 'application/x-shockwave-flash',
 							pluginspage: 'http://www.macromedia.com/go/getflashplayer'
-						});
+						} );
 						if ( objectNode )
 							embedNode.appendTo( objectNode );
 					}
@@ -344,7 +348,7 @@
 
 									if ( evt.data && evt.data.value )
 										updatePreview( evt.data.value );
-								});
+								} );
 								// Sync when input value changed.
 								this.getInputElement().on( 'change', function( evt ) {
 
@@ -359,7 +363,7 @@
 							hidden: true,
 							// v-align with the 'src' field.
 							// TODO: We need something better than a fixed size here.
-							style: 'display:inline-block;margin-top:10px;',
+							style: 'display:inline-block;margin-top:14px;',
 							label: editor.lang.common.browseServer
 						}
 						]
@@ -373,6 +377,7 @@
 						{
 						type: 'text',
 						id: 'width',
+						requiredContent: 'embed[width]',
 						style: 'width:95px',
 						label: editor.lang.common.width,
 						validate: CKEDITOR.dialog.validate.htmlLength( editor.lang.common.invalidHtmlLength.replace( '%1', editor.lang.common.width ) ),
@@ -382,6 +387,7 @@
 						{
 						type: 'text',
 						id: 'height',
+						requiredContent: 'embed[height]',
 						style: 'width:95px',
 						label: editor.lang.common.height,
 						validate: CKEDITOR.dialog.validate.htmlLength( editor.lang.common.invalidHtmlLength.replace( '%1', editor.lang.common.height ) ),
@@ -391,6 +397,7 @@
 						{
 						type: 'text',
 						id: 'hSpace',
+						requiredContent: 'embed[hspace]',
 						style: 'width:95px',
 						label: editor.lang.flash.hSpace,
 						validate: CKEDITOR.dialog.validate.integer( editor.lang.flash.validateHSpace ),
@@ -400,6 +407,7 @@
 						{
 						type: 'text',
 						id: 'vSpace',
+						requiredContent: 'embed[vspace]',
 						style: 'width:95px',
 						label: editor.lang.flash.vSpace,
 						validate: CKEDITOR.dialog.validate.integer( editor.lang.flash.validateVSpace ),
@@ -454,6 +462,7 @@
 						{
 						id: 'scale',
 						type: 'select',
+						requiredContent: 'embed[scale]',
 						label: editor.lang.flash.scale,
 						'default': '',
 						style: 'width : 100%;',
@@ -469,6 +478,7 @@
 						{
 						id: 'allowScriptAccess',
 						type: 'select',
+						requiredContent: 'embed[allowscriptaccess]',
 						label: editor.lang.flash.access,
 						'default': '',
 						style: 'width : 100%;',
@@ -490,6 +500,7 @@
 						{
 						id: 'wmode',
 						type: 'select',
+						requiredContent: 'embed[wmode]',
 						label: editor.lang.flash.windowMode,
 						'default': '',
 						style: 'width : 100%;',
@@ -505,6 +516,7 @@
 						{
 						id: 'quality',
 						type: 'select',
+						requiredContent: 'embed[quality]',
 						label: editor.lang.flash.quality,
 						'default': 'high',
 						style: 'width : 100%;',
@@ -529,6 +541,7 @@
 						{
 						id: 'align',
 						type: 'select',
+						requiredContent: 'object[align]',
 						label: editor.lang.common.align,
 						'default': '',
 						style: 'width : 100%;',
@@ -613,6 +626,7 @@
 						{
 						type: 'text',
 						id: 'id',
+						requiredContent: 'object[id]',
 						label: editor.lang.common.id,
 						setup: loadValue,
 						commit: commitValue
@@ -626,6 +640,7 @@
 						{
 						type: 'text',
 						id: 'bgcolor',
+						requiredContent: 'embed[bgcolor]',
 						label: editor.lang.flash.bgcolor,
 						setup: loadValue,
 						commit: commitValue
@@ -633,6 +648,7 @@
 						{
 						type: 'text',
 						id: 'class',
+						requiredContent: 'embed(cke-xyz)', // Random text like 'xyz' will check if all are allowed.
 						label: editor.lang.common.cssClass,
 						setup: loadValue,
 						commit: commitValue
@@ -642,6 +658,7 @@
 					{
 					type: 'text',
 					id: 'style',
+					requiredContent: 'embed{cke-xyz}', // Random text like 'xyz' will check if all are allowed.
 					validate: CKEDITOR.dialog.validate.inlineStyle( editor.lang.common.invalidInlineStyle ),
 					label: editor.lang.common.cssStyle,
 					setup: loadValue,
@@ -651,5 +668,5 @@
 			}
 			]
 		};
-	});
-})();
+	} );
+} )();
