@@ -26,14 +26,9 @@ var CKBUILDER_CONFIG = {
 		a11yhelp : 1,
 		about : 1,
 		basicstyles : 1,
-		becolor : 1,
-		belink : 1,
-		bestyles : 1,
 		bidi : 1,
 		blockquote : 1,
 		clipboard : 1,
-		colorbutton : 0,
-		colordialog : 0,
 		contextmenu : 1,
 		dialog : 1,
 		div : 1,
@@ -53,7 +48,6 @@ var CKBUILDER_CONFIG = {
 		image : 1,
 		indent : 1,
 		justify : 1,
-		link : 0,
 		list : 1,
 		liststyle : 1,
 		magicline : 1,
@@ -74,13 +68,23 @@ var CKBUILDER_CONFIG = {
 		smiley : 1,
 		sourcearea : 1,
 		specialchar : 1,
-		stylescombo : 0,
 		tab : 1,
 		table : 1,
 		tabletools : 1,
 		templates : 1,
 		toolbar : 1,
 		undo : 1,
-		wysiwygarea : 1
+		wysiwygarea : 1,
+
+		// remove plugins that have Behance specific replacements
+		colorbutton : 0,
+		colordialog : 0,
+		link : 0,
+		stylescombo : 0,
+
+		// Behance specific plugins
+		becolor : 1,
+		belink : 1,
+		bestyles : 1
 	}
 };

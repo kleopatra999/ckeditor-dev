@@ -62,6 +62,7 @@
 				label: lang.label,
 				title: lang.panelTitle,
 				toolbar: 'styles,10',
+				allowedContent: { div: { styles: true } },
 
 				panel: {
 					css: [ CKEDITOR.skin.getPath( 'editor' ) ].concat( config.contentsCss ),
