@@ -23,13 +23,17 @@ CKEDITOR.plugins.add( 'becolor', {
 		}
 
 		function addButton( name, type, title, order ) {
-			var colorBoxId = CKEDITOR.tools.getNextId() + '_colorBox';
+			var style = new CKEDITOR.style( config[ 'colorButton_' + type + 'Style' ] ),
+				colorBoxId = CKEDITOR.tools.getNextId() + '_colorBox';
+
 			editor.ui.add( name, CKEDITOR.UI_BUTTON, {
 				label: title,
 				title: title,
 				modes: { wysiwyg:1 },
 				editorFocus: 1,
 				toolbar: 'colors,' + order,
+				allowedContent: style,
+				requiredContent: style,
 
 				// The automatic colorbox should represent the real color (#6010)
 				click: function() {

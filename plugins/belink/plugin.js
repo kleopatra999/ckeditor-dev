@@ -379,6 +379,9 @@ CKEDITOR.linkCommand.prototype = {
     });
   },
 
+  allowedContent: 'a[!href,target]{color}',
+  requiredContent: 'a[href]',
+
   refresh: function( editor, path ) {
     var element = path.lastElement && path.lastElement.getAscendant( 'a', true );
   },
