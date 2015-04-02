@@ -46,7 +46,7 @@ CKEDITOR.plugins.add( 'becolor', {
 
                     color = (block && block.getComputedStyle( 'color' )) || '#ffffff';
 
-                    require('nbd/event').trigger('ckeditor.color', {
+                    editor.fire('becolor', {
                       editor : editor,
                       button : this,
                       color  : color

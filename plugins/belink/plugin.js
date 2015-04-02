@@ -372,7 +372,7 @@ CKEDITOR.linkCommand.prototype = {
   exec: function( editor ) {
     var element = CKEDITOR.plugins.link.getSelectedLink( editor ),
     href = element && element.data( 'cke-saved-href' );
-    require('nbd/event').trigger( 'ckeditor.link', {
+    editor.fire('belink', {
       href:href,
       element:element,
       editor:editor
