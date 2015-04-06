@@ -103,7 +103,7 @@
 				onClick: function( value ) {
 
                     if (value === 'edit') {
-                      require('nbd/event').trigger('ckeditor.styles', { editor: editor, value: this.getValue() });
+                      editor.fire('bestyles', { editor: editor, value: this.getValue() });
                       return;
                     }
 
