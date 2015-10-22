@@ -1,5 +1,5 @@
-﻿/**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+/**
+ * @license Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -48,6 +48,9 @@ CKEDITOR.ENTER_DIV = 3;
  * Stores default configuration settings. Changes to this object are
  * reflected in all editor instances, if not specified otherwise for a particular
  * instance.
+ *
+ * Read more about setting CKEditor configuration in the
+ * [Developer's Guide](#!/guide/dev_configuration).
  *
  * @class
  * @singleton
@@ -103,15 +106,15 @@ CKEDITOR.config = {
 	defaultLanguage: 'en',
 
 	/**
-	 * The writing direction of the language used to create editor contents.
+	 * The writing direction of the language which is used to create editor contents.
 	 * Allowed values are:
 	 *
-	 * * `''` (empty string) - indicate content direction will be the same with either the editor
-	 *     UI direction or page element direction depending on the creators:
-	 *     * Themed UI: The same with user interface language direction;
-	 *     * Inline: The same with the editable element text direction;
-	 * * `'ltr'` - for Left-To-Right language (like English);
-	 * * `'rtl'` - for Right-To-Left languages (like Arabic).
+	 * * `''` (an empty string) &ndash; Indicates that content direction will be the same as either
+	 *      the editor UI direction or the page element direction depending on the editor type:
+	 *     * Classic editor &ndash; The same as the user interface language direction.
+	 *     * Inline editor &ndash; The same as the editable element text direction.
+	 * * `'ltr'` &ndash; Indicates a Left-To-Right text direction (like in English).
+	 * * `'rtl'` &ndash; Indicates a Right-To-Left text direction (like in Arabic).
 	 *
 	 * Example:
 	 *
@@ -245,6 +248,23 @@ CKEDITOR.config = {
 	 * @cfg {Number/String}
 	 */
 	height: 200,
+
+	/**
+	 * The CSS file(s) to be used to apply style to editor content. It should
+	 * reflect the CSS used in the target pages where the content is to be
+	 * displayed.
+	 *
+	 * **Note:** This configuration value is ignored by [inline editor](#!/guide/dev_inline)
+	 * as it uses the styles that come directly from the page that CKEditor is
+	 * rendered on. It is also ignored in the {@link #fullPage full page mode} in
+	 * which developer has a full control over the HTML.
+	 *
+	 *		config.contentsCss = '/css/mysitestyles.css';
+	 *		config.contentsCss = ['/css/mysitestyles.css', '/css/anotherfile.css'];
+	 *
+	 * @cfg {String/Array} [contentsCss=CKEDITOR.getUrl( 'contents.css' )]
+	 */
+	contentsCss: CKEDITOR.getUrl( 'contents.css' ),
 
 	/**
 	 * Comma-separated list of plugins to be used in an editor instance. Note that
