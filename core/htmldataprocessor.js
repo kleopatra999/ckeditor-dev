@@ -1,5 +1,5 @@
-﻿/**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+/**
+ * @license Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -49,7 +49,8 @@
 
 		editor.on( 'toHtml', function( evt ) {
 			var evtData = evt.data,
-				data = evtData.dataValue;
+				data = evtData.dataValue,
+				fixBodyTag;
 
 			// The source data is already HTML, but we need to clean
 			// it up and apply the filter.
@@ -116,10 +117,23 @@
 			// can be properly filtered.
 			data = unprotectRealComments( data );
 
+			if ( evtData.fixForBody === false ) {
+				fixBodyTag = false;
+			} else {
+				fixBodyTag = getFixBodyTag( evtData.enterMode, editor.config.autoParagraph );
+			}
+
 			// Now use our parser to make further fixes to the structure, as
 			// well as apply the filter.
-			evtData.dataValue = CKEDITOR.htmlParser.fragment.fromHtml(
-				data, evtData.context, evtData.fixForBody === false ? false : getFixBodyTag( evtData.enterMode, editor.config.autoParagraph ) );
+			data = CKEDITOR.htmlParser.fragment.fromHtml( data, evtData.context, fixBodyTag );
+
+			// The empty root element needs to be fixed by adding 'p' or 'div' into it.
+			// This avoids the need to create that element on the first focus (#12630).
+			if ( fixBodyTag ) {
+				fixEmptyRoot( data, fixBodyTag );
+			}
+
+			evtData.dataValue = data;
 		}, null, null, 5 );
 
 		// Filter incoming "data".
@@ -188,7 +202,7 @@
 
 	CKEDITOR.htmlDataProcessor.prototype = {
 		/**
-		 * Processes the input (potentially malformed) HTML to a purified form which
+		 * Processes the (potentially malformed) input HTML to a purified form which
 		 * is suitable for using in the WYSIWYG editable.
 		 *
 		 * This method fires the {@link CKEDITOR.editor#toHtml} event which makes it possible
@@ -201,20 +215,22 @@
 		 * @param {String} data The raw data.
 		 * @param {Object} [options] The options object.
 		 * @param {String} [options.context] The tag name of a context element within which
-		 * the input is to be processed, default to be the editable element.
+		 * the input is to be processed, defaults to the editable element.
 		 * If `null` is passed, then data will be parsed without context (as children of {@link CKEDITOR.htmlParser.fragment}).
 		 * See {@link CKEDITOR.htmlParser.fragment#fromHtml} for more details.
-		 * @param {Boolean} [options.fixForBody=true] Whether to trigger the auto paragraph for non-block contents.
+		 * @param {Boolean} [options.fixForBody=true] Whether to trigger the auto paragraph for non-block content.
 		 * @param {CKEDITOR.filter} [options.filter] When specified, instead of using the {@link CKEDITOR.editor#filter main filter},
-		 * passed instance will be used to filter the content.
+		 * the passed instance will be used to filter the content.
 		 * @param {Boolean} [options.dontFilter] Do not filter data with {@link CKEDITOR.filter} (note: transformations
-		 * will be still applied).
-		 * @param {Number} [options.enterMode] When specified it will be used instead of the {@link CKEDITOR.editor#enterMode main enterMode}.
+		 * will still be applied).
+		 * @param {Number} [options.enterMode] When specified, it will be used instead of the {@link CKEDITOR.editor#enterMode main enterMode}.
+		 * @param {Boolean} [options.protectedWhitespaces] Indicates that content was wrapped with `<span>` elements to preserve
+		 * leading and trailing whitespaces. Option used by the {@link CKEDITOR.editor#method-insertHtml} method.
 		 * @returns {String}
 		 */
 		toHtml: function( data, options, fixForBody, dontFilter ) {
 			var editor = this.editor,
-				context, filter, enterMode;
+				context, filter, enterMode, protectedWhitespaces;
 
 			// Typeof null == 'object', so check truthiness of options too.
 			if ( options && typeof options == 'object' ) {
@@ -223,10 +239,12 @@
 				dontFilter = options.dontFilter;
 				filter = options.filter;
 				enterMode = options.enterMode;
+				protectedWhitespaces = options.protectedWhitespaces;
 			}
 			// Backward compatibility. Since CKEDITOR 4.3 every option was a separate argument.
-			else
+			else {
 				context = options;
+			}
 
 			// Fall back to the editable as context if not specified.
 			if ( !context && context !== null )
@@ -238,7 +256,8 @@
 				fixForBody: fixForBody,
 				dontFilter: dontFilter,
 				filter: filter || editor.filter,
-				enterMode: enterMode || editor.enterMode
+				enterMode: enterMode || editor.enterMode,
+				protectedWhitespaces: protectedWhitespaces
 			} ).dataValue;
 		},
 
@@ -246,15 +265,15 @@
 		 * See {@link CKEDITOR.dataProcessor#toDataFormat}.
 		 *
 		 * This method fires the {@link CKEDITOR.editor#toDataFormat} event which makes it possible
-		 * to hook into the process at various steps.
+		 * to hook into the process at various stages.
 		 *
 		 * @param {String} html
 		 * @param {Object} [options] The options object.
-		 * @param {String} [options.context] The tag name of a context element within which
-		 * the input is to be processed, default to be the editable element.
+		 * @param {String} [options.context] The tag name of the context element within which
+		 * the input is to be processed, defaults to the editable element.
 		 * @param {CKEDITOR.filter} [options.filter] When specified, instead of using the {@link CKEDITOR.editor#filter main filter},
-		 * passed instance will be used to apply content transformations to the content.
-		 * @param {Number} [options.enterMode] When specified it will be used instead of the {@link CKEDITOR.editor#enterMode main enterMode}.
+		 * the passed instance will be used to apply content transformations to the content.
+		 * @param {Number} [options.enterMode] When specified, it will be used instead of the {@link CKEDITOR.editor#enterMode main enterMode}.
 		 * @returns {String}
 		 */
 		toDataFormat: function( html, options ) {
@@ -313,9 +332,11 @@
 
 				cleanBogus( block );
 
-				var shouldFillBlock = typeof fillEmptyBlock == 'function' ? fillEmptyBlock( block ) : fillEmptyBlock;
+				// Add fillers to input (always) and to output (if fillEmptyBlock is ok with that).
+				var shouldFillBlock = !isOutput ||
+					( typeof fillEmptyBlock == 'function' ? fillEmptyBlock( block ) : fillEmptyBlock ) !== false;
 
-				if ( shouldFillBlock !== false && isEmptyBlockNeedFiller( block ) ) {
+				if ( shouldFillBlock && isEmptyBlockNeedFiller( block ) ) {
 					block.add( createFiller( isOutput ) );
 				}
 			};
@@ -324,15 +345,13 @@
 		// Append a filler right after the last line-break BR, found at the end of block.
 		function brFilter( isOutput ) {
 			return function( br ) {
-
 				// DO NOT apply the filer if parent's a fragment node.
 				if ( br.parent.type == CKEDITOR.NODE_DOCUMENT_FRAGMENT )
 					return;
 
 				var attrs = br.attributes;
 				// Dismiss BRs that are either bogus or eol marker.
-				if ( 'data-cke-bogus' in attrs ||
-						 'data-cke-eol' in attrs ) {
+				if ( 'data-cke-bogus' in attrs || 'data-cke-eol' in attrs ) {
 					delete attrs [ 'data-cke-bogus' ];
 					return;
 				}
@@ -352,15 +371,15 @@
 
 			// BR that's not from IE<11 DOM, except for a EOL marker.
 			if ( !( isOutput && !CKEDITOR.env.needsBrFiller ) &&
-					 node.type == CKEDITOR.NODE_ELEMENT && node.name == 'br' &&
-					 !node.attributes[ 'data-cke-eol' ] )
+					node.type == CKEDITOR.NODE_ELEMENT && node.name == 'br' &&
+					!node.attributes[ 'data-cke-eol' ] ) {
 				return true;
+			}
 
 			var match;
+
 			// NBSP, possibly.
-			if ( node.type == CKEDITOR.NODE_TEXT &&
-					 ( match = node.value.match( tailNbspRegex ) ) )
-			{
+			if ( node.type == CKEDITOR.NODE_TEXT && ( match = node.value.match( tailNbspRegex ) ) ) {
 				// We need to separate tail NBSP out of a text node, for later removal.
 				if ( match.index ) {
 					( new CKEDITOR.htmlParser.text( node.value.substring( 0, match.index ) ) ).insertBefore( node );
@@ -392,19 +411,15 @@
 		function cleanBogus( block ) {
 			var bogus = [];
 			var last = getLast( block ), node, previous;
-			if ( last ) {
 
+			if ( last ) {
 				// Check for bogus at the end of this block.
 				// e.g. <p>foo<br /></p>
 				maybeBogus( last, 1 ) && bogus.push( last );
 
 				while ( last ) {
-
 					// Check for bogus at the end of any pseudo block contained.
-					if ( isBlockBoundary( last ) &&
-							 ( node = getPrevious( last ) ) &&
-							 maybeBogus( node ) )
-					{
+					if ( isBlockBoundary( last ) && ( node = getPrevious( last ) ) && maybeBogus( node ) ) {
 						// Bogus must have inline proceeding, instead single BR between two blocks,
 						// is considered as filler, e.g. <hr /><br /><hr />
 						if ( ( previous = getPrevious( node ) ) && !isBlockBoundary( previous ) )
@@ -435,9 +450,9 @@
 			// 1. For IE version >=8,  empty blocks are displayed correctly themself in wysiwiyg;
 			// 2. For the rest, at least table cell and list item need no filler space. (#6248)
 			if ( !isOutput && !CKEDITOR.env.needsBrFiller &&
-					 ( document.documentMode > 7 ||
-						 block.name in CKEDITOR.dtd.tr ||
-						 block.name in CKEDITOR.dtd.$listItem ) ) {
+				( document.documentMode > 7 ||
+					block.name in CKEDITOR.dtd.tr ||
+					block.name in CKEDITOR.dtd.$listItem ) ) {
 				return false;
 			}
 
@@ -498,20 +513,20 @@
 	// Judge whether the node is an ghost node to be ignored, when traversing.
 	function isEmpty( node ) {
 		return node.type == CKEDITOR.NODE_TEXT &&
-		  !CKEDITOR.tools.trim( node.value ) ||
-		  node.type == CKEDITOR.NODE_ELEMENT &&
-		  node.attributes[ 'data-cke-bookmark' ];
+			!CKEDITOR.tools.trim( node.value ) ||
+			node.type == CKEDITOR.NODE_ELEMENT &&
+			node.attributes[ 'data-cke-bookmark' ];
 	}
 
 	// Judge whether the node is a block-like element.
 	function isBlockBoundary( node ) {
 		return node &&
-					 ( node.type == CKEDITOR.NODE_ELEMENT && node.name in blockLikeTags ||
-						 node.type == CKEDITOR.NODE_DOCUMENT_FRAGMENT );
+			( node.type == CKEDITOR.NODE_ELEMENT && node.name in blockLikeTags ||
+			node.type == CKEDITOR.NODE_DOCUMENT_FRAGMENT );
 	}
 
 	function append( parent, node ) {
-		var last = parent.children[ parent.children.length -1 ];
+		var last = parent.children[ parent.children.length - 1 ];
 		parent.children.push( node );
 		node.parent = parent;
 		if ( last ) {
@@ -587,9 +602,11 @@
 				}
 			},
 
-			// Remove empty link but not empty anchor. (#3829)
+			// Remove empty link but not empty anchor. (#3829, #13516)
 			a: function( element ) {
-				if ( !( element.children.length || element.attributes.name || element.attributes[ 'data-cke-saved-name' ] ) )
+				var attrs = element.attributes;
+
+				if ( !( element.children.length || attrs.name || attrs.id || element.attributes[ 'data-cke-saved-name' ] ) )
 					return false;
 			}
 		}
@@ -638,26 +655,26 @@
 
 			// The contents of table should be in correct order (#4809).
 			table: function( element ) {
-					// Clone the array as it would become empty during the sort call.
-					var children = element.children.slice( 0 );
-					children.sort( function( node1, node2 ) {
-						var index1, index2;
+				// Clone the array as it would become empty during the sort call.
+				var children = element.children.slice( 0 );
 
-						// Compare in the predefined order.
-						if ( node1.type == CKEDITOR.NODE_ELEMENT &&
-								 node2.type == node1.type ) {
-							index1 = CKEDITOR.tools.indexOf( tableOrder, node1.name );
-							index2 = CKEDITOR.tools.indexOf( tableOrder, node2.name );
-						}
+				children.sort( function( node1, node2 ) {
+					var index1, index2;
 
-						// Make sure the sort is stable, if no order can be established above.
-						if ( !( index1 > -1 && index2 > -1 && index1 != index2 ) ) {
-							index1 = getNodeIndex( node1 );
-							index2 = getNodeIndex( node2 );
-						}
+					// Compare in the predefined order.
+					if ( node1.type == CKEDITOR.NODE_ELEMENT && node2.type == node1.type ) {
+						index1 = CKEDITOR.tools.indexOf( tableOrder, node1.name );
+						index2 = CKEDITOR.tools.indexOf( tableOrder, node2.name );
+					}
 
-						return index1 > index2 ? 1 : -1;
-					} );
+					// Make sure the sort is stable, if no order can be established above.
+					if ( !( index1 > -1 && index2 > -1 && index1 != index2 ) ) {
+						index1 = getNodeIndex( node1 );
+						index2 = getNodeIndex( node2 );
+					}
+
+					return index1 > index2 ? 1 : -1;
+				} );
 			},
 
 			// Restore param elements into self-closing.
@@ -707,7 +724,7 @@
 		},
 
 		attributes: {
-			'class': function( value, element ) {
+			'class': function( value ) {
 				// Remove all class names starting with "cke_".
 				return CKEDITOR.tools.ltrim( value.replace( /(?:^|\s+)cke_[^\s]*/g, '' ) ) || false;
 			}
@@ -717,7 +734,7 @@
 	if ( CKEDITOR.env.ie ) {
 		// IE outputs style attribute in capital letters. We should convert
 		// them back to lower case, while not hurting the values (#5930)
-		defaultHtmlFilterRulesForAll.attributes.style = function( value, element ) {
+		defaultHtmlFilterRulesForAll.attributes.style = function( value ) {
 			return value.replace( /(^|;)([^\:]+)/g, function( match ) {
 				return match.toLowerCase();
 			} );
@@ -757,7 +774,7 @@
 		// 	'data-x' => '&lt;a href=&quot;X&quot;'
 		//
 		// which, can be easily filtered out (#11508).
-		protectAttributeRegex = /([\w-]+)\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|(?:[^ "'>]+))/gi,
+		protectAttributeRegex = /([\w-:]+)\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|(?:[^ "'>]+))/gi,
 		protectAttributeNameRegex = /^(href|src|name)$/i;
 
 		// Note: we use lazy star '*?' to prevent eating everything up to the last occurrence of </style> or </textarea>.
@@ -858,7 +875,7 @@
 		var regexes = [
 			// Script tags will also be forced to be protected, otherwise
 			// IE will execute them.
-			( /<script[\s\S]*?<\/script>/gi ),
+			( /<script[\s\S]*?(<\/script>|$)/gi ),
 
 			// <noscript> tags (get lost in IE and messed up in FF).
 			/<noscript[\s\S]*?<\/noscript>/gi,
@@ -896,7 +913,7 @@
 		// Different protection pattern is used for those that
 		// live in attributes to avoid from being HTML encoded.
 		// Why so serious? See #9205, #8216, #7805, #11754, #11846.
-		data = data.replace( /<\w+(?:\s+(?:(?:[^\s=>]+\s*=\s*(?:[^'"\s>]+|'[^']*'|"[^"]*"))|[^\s=>]+))+\s*>/g, function( match ) {
+		data = data.replace( /<\w+(?:\s+(?:(?:[^\s=>]+\s*=\s*(?:[^'"\s>]+|'[^']*'|"[^"]*"))|[^\s=\/>]+))+\s*\/?>/g, function( match ) {
 			return match.replace( /<!--\{cke_protected\}([^>]*)-->/g, function( match, data ) {
 				store[ store.id ] = decodeURIComponent( data );
 				return '{cke_protected_' + ( store.id++ ) + '}';
@@ -911,6 +928,14 @@
 		} );
 
 		return data;
+	}
+
+	// Creates a block if the root element is empty.
+	function fixEmptyRoot( root, fixBodyTag ) {
+		if ( !root.children.length && CKEDITOR.dtd[ root.name ][ fixBodyTag ] ) {
+			var fixBodyElement = new CKEDITOR.htmlParser.element( fixBodyTag );
+			root.add( fixBodyElement );
+		}
 	}
 } )();
 
@@ -970,6 +995,7 @@
  * @param {Boolean} data.dontFilter See {@link CKEDITOR.htmlDataProcessor#toHtml} The `dontFilter` argument.
  * @param {Boolean} data.filter See {@link CKEDITOR.htmlDataProcessor#toHtml} The `filter` argument.
  * @param {Boolean} data.enterMode See {@link CKEDITOR.htmlDataProcessor#toHtml} The `enterMode` argument.
+ * @param {Boolean} [data.protectedWhitespaces] See {@link CKEDITOR.htmlDataProcessor#toHtml} The `protectedWhitespaces` argument.
  */
 
 /**

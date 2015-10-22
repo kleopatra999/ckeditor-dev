@@ -5,7 +5,10 @@
 	'use strict';
 
 	bender.editor = {
-		creator: 'inline' // Speeeeeed...
+		creator: 'inline', // Speeeeeed...
+		config: {
+			pasteFilter: null
+		}
 	};
 
 	bender.test( {
@@ -63,6 +66,22 @@
 			editor.execCommand( 'paste', html );
 
 			wait();
+		},
+
+		// #12411
+		'test span as a direct child no break': function() {
+			bender.editorBot.create( {
+				name: 'editor2',
+				startupData: '<span>he?</span>',
+				config: {
+					autoParagraph: false,
+					extraPlugins: 'divarea'
+				}
+			},
+			function() {
+				// If we get here it means that nothing fails :)
+				assert.pass();
+			} );
 		}
 	} );
 } )();

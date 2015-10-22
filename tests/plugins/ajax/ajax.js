@@ -87,6 +87,10 @@
 		},
 
 		test_loadXml_sync: function() {
+			if ( CKEDITOR.env.ie && CKEDITOR.env.version > 9 ) {
+				assert.ignore();
+			}
+
 			var data = CKEDITOR.ajax.loadXml( '../../_assets/sample.xml' );
 			assert.isInstanceOf( CKEDITOR.xml, data );
 			assert.isNotNull( data.selectSingleNode( '//list/item' ), 'The loaded data doesn\'t match (null)' );
@@ -99,6 +103,10 @@
 		},
 
 		test_loadXml_async: function() {
+			if ( CKEDITOR.env.ie && CKEDITOR.env.version > 9 ) {
+				assert.ignore();
+			}
+
 			var callback = function( data ) {
 				resume( function() {
 					assert.isInstanceOf( CKEDITOR.xml, data );
@@ -133,7 +141,7 @@
 				contentType = 'application/x-www-form-urlencoded';
 
 			assertAjaxPost( url, data, contentType, function() {
-				CKEDITOR.ajax.post( url, data, contentType, function( respData ) {
+				CKEDITOR.ajax.post( url, data, contentType, function() {
 					resume( function() {
 						assert.isTrue( true, 'Callback called' );
 					} );
@@ -149,7 +157,7 @@
 				contentType = 'application/json';
 
 			assertAjaxPost( url, data, contentType, function() {
-				CKEDITOR.ajax.post( url, data, contentType, function( respData ) {
+				CKEDITOR.ajax.post( url, data, contentType, function() {
 					resume( function() {
 						assert.isTrue( true, 'Callback called' );
 					} );
@@ -164,7 +172,7 @@
 				data = 'key=value';
 
 			assertAjaxPost( url, data, 'application/x-www-form-urlencoded; charset=UTF-8', function() {
-				CKEDITOR.ajax.post( url, data, null, function( respData ) {
+				CKEDITOR.ajax.post( url, data, null, function() {
 					resume( function() {
 						assert.isTrue( true, 'Callback called' );
 					} );

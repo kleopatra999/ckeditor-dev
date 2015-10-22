@@ -2,75 +2,61 @@
 
 bender.test(
 {
-	'test: Loading self defined external plugin file paths' : function() {
+	'test: Loading self defined external plugin file paths': function() {
 		CKEDITOR.plugins.addExternal( 'myplugin', '%TEST_DIR%_assets/myplugins/sample/', 'my_plugin.js' );
 
 		CKEDITOR.plugins.load( 'myplugin', function() {
 			this.resume( function() {
-					assert.isTrue( CKEDITOR.plugins.get( 'myplugin' ).definition );
-				} );
-		}
-		, this );
+				assert.isTrue( CKEDITOR.plugins.get( 'myplugin' ).definition );
+			} );
+		}, this );
 
 		this.wait();
 	},
 
-	'errors thrown when required plugin specified in removePlugins list' : function() {
-		var originalSetTimeout = window.setTimeout,
-			errors = [];
+	'errors thrown when required plugin specified in removePlugins list': function() {
+		var log = sinon.stub( CKEDITOR, 'error' );
 
-		// Override native setTimeout to catch all errors.
-		window.setTimeout = function( fn, timeout ) {
-			originalSetTimeout( function() {
-				try
-				{
-					fn.apply( this, Array.prototype.slice.call( arguments ) );
-				}
-				catch ( err ) {
-					errors.push( err );
-
-					// Do not fail silently on other errors.
-					if ( !err.message || !err.message.match( /^Plugin "\w+" cannot be removed/ ) )
-						throw err;
-				}
-			}, timeout );
-		};
-
-		CKEDITOR.plugins.add( 'errorplugin1' , {
+		CKEDITOR.plugins.add( 'errorplugin1', {
 			requires: 'errorplugin3,errorplugin2'
 		} );
-		CKEDITOR.plugins.add( 'errorplugin2' , {
+
+		CKEDITOR.plugins.add( 'errorplugin2', {
 			requires: 'errorplugin3,errorplugin4'
 		} );
-		CKEDITOR.plugins.add( 'errorplugin3' , {
-			init : function( editor ) {
+
+		CKEDITOR.plugins.add( 'errorplugin3', {
+			init: function( editor ) {
 				editor.plugin3Inited = true;
 			}
 		} );
-		CKEDITOR.plugins.add( 'errorplugin4' , {
-			init : function( editor ) {
+
+		CKEDITOR.plugins.add( 'errorplugin4', {
+			init: function( editor ) {
 				editor.plugin4Inited = true;
 			}
 		} );
 
-		originalSetTimeout( function() {
+		setTimeout( function() {
 			CKEDITOR.replace( 'errortest', {
-				plugins : 'wysiwygarea,errorplugin1,errorplugin3',
-				extraPlugins : 'errorplugin2',
-				removePlugins : 'errorplugin3,errorplugin4',
+				plugins: 'wysiwygarea,errorplugin1,errorplugin3',
+				extraPlugins: 'errorplugin2',
+				removePlugins: 'errorplugin3,errorplugin4',
 
-				on : {
+				on: {
 					instanceReady: function( evt ) {
 						resume( function() {
-							// Reset overriden setTimeout.
-							window.setTimeout = originalSetTimeout;
+
+							log.restore();
 
 							// plugin 3 reqed by plugin 1 and plugins 4 & 3 reqed by plugin 2.
-							assert.areEqual( 3, errors.length );
+							assert.isTrue( log.calledThrice, 'CKEDITOR.error should be called three times.' );
 
-							var err;
-							while ( ( err = errors.pop() ) )
-								assert.isMatching( /^Plugin "\w+" cannot be removed/, err.message );
+							var call;
+							for ( var i = 0; i < log.callCount; i++ ) {
+								call = log.getCall( i );
+								assert.areEqual( 'editor-plugin-required', call.args[ 0 ], 'Required plugin error should be logged.' );
+							}
 
 							// Plugins are corretly inited.
 							assert.isTrue( evt.editor.plugin3Inited );

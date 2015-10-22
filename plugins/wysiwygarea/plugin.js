@@ -1,5 +1,5 @@
 /**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -27,13 +27,18 @@
 				// With IE, the custom domain has to be taken care at first,
 				// for other browers, the 'src' attribute should be left empty to
 				// trigger iframe's 'load' event.
-				src = CKEDITOR.env.air ? 'javascript:void(0)' : CKEDITOR.env.ie ? 'javascript:void(function(){' + encodeURIComponent( src ) + '}())'
-					:
-					'';
+				// Microsoft Edge throws "Permission Denied" if treated like an IE (#13441).
+				if ( CKEDITOR.env.air ) {
+					src = 'javascript:void(0)'; // jshint ignore:line
+				} else if ( CKEDITOR.env.ie && !CKEDITOR.env.edge ) {
+					src = 'javascript:void(function(){' + encodeURIComponent( src ) + '}())'; // jshint ignore:line
+				} else {
+					src = '';
+				}
 
 				var iframe = CKEDITOR.dom.element.createFromHtml( '<iframe src="' + src + '" frameBorder="0"></iframe>' );
 				iframe.setStyles( { width: '100%', height: '100%' } );
-				iframe.addClass( 'cke_wysiwyg_frame cke_reset' );
+				iframe.addClass( 'cke_wysiwyg_frame' ).addClass( 'cke_reset' );
 
 				var contentSpace = editor.ui.space( 'contents' );
 				contentSpace.append( iframe );
@@ -41,7 +46,7 @@
 
 				// Asynchronous iframe loading is only required in IE>8 and Gecko (other reasons probably).
 				// Do not use it on WebKit as it'll break the browser-back navigation.
-				var useOnloadEvent = CKEDITOR.env.ie || CKEDITOR.env.gecko;
+				var useOnloadEvent = ( CKEDITOR.env.ie && !CKEDITOR.env.edge ) || CKEDITOR.env.gecko;
 				if ( useOnloadEvent )
 					iframe.on( 'load', onLoad );
 
@@ -77,23 +82,6 @@
 
 				// Execute onLoad manually for all non IE||Gecko browsers.
 				!useOnloadEvent && onLoad();
-
-				if ( CKEDITOR.env.webkit ) {
-					// Webkit: iframe size doesn't auto fit well. (#7360)
-					var onResize = function() {
-						// Hide the iframe to get real size of the holder. (#8941)
-						contentSpace.setStyle( 'width', '100%' );
-
-						iframe.hide();
-						iframe.setSize( 'width', contentSpace.getSize( 'width' ) );
-						contentSpace.removeStyle( 'width' );
-						iframe.show();
-					};
-
-					iframe.setCustomData( 'onResize', onResize );
-
-					CKEDITOR.document.getWindow().on( 'resize', onResize );
-				}
 
 				editor.fire( 'ariaWidget', iframe );
 
@@ -142,30 +130,6 @@
 		script = doc.getElementById( 'cke_basetagscrpt' );
 		script && script.parentNode.removeChild( script );
 
-		if ( CKEDITOR.env.gecko ) {
-			// Force Gecko to change contentEditable from false to true on domReady
-			// (because it's previously set to true on iframe's body creation).
-			// Otherwise del/backspace and some other editable features will be broken in Fx <4
-			// See: #107 and https://bugzilla.mozilla.org/show_bug.cgi?id=440916
-			body.contentEditable = false;
-
-			// Remove any leading <br> which is between the <body> and the comment.
-			// This one fixes Firefox 3.6 bug: the browser inserts a leading <br>
-			// on document.write if the body has contenteditable="true".
-			if ( CKEDITOR.env.version < 20000 ) {
-				body.innerHTML = body.innerHTML.replace( /^.*<!-- cke-content-start -->/, '' );
-
-				// The above hack messes up the selection in FF36.
-				// To clean this up, manually select collapsed range that
-				// starts within the body.
-				setTimeout( function() {
-					var range = new CKEDITOR.dom.range( new CKEDITOR.dom.document( doc ) );
-					range.setStart( new CKEDITOR.dom.node( body ), 0 );
-					editor.getSelection().selectRanges( [ range ] );
-				}, 0 );
-			}
-		}
-
 		body.contentEditable = true;
 
 		if ( CKEDITOR.env.ie ) {
@@ -186,28 +150,20 @@
 		doc = new CKEDITOR.dom.document( doc );
 
 		this.setup();
+		this.fixInitialSelection();
 
-		if ( CKEDITOR.env.ie ) {
+		var editable = this;
+
+		// Without it IE8 has problem with removing selection in nested editable. (#13785)
+		if ( CKEDITOR.env.ie && !CKEDITOR.env.edge ) {
 			doc.getDocumentElement().addClass( doc.$.compatMode );
+		}
 
-			// Prevent IE from leaving new paragraph after deleting all contents in body. (#6966)
-			editor.config.enterMode != CKEDITOR.ENTER_P && this.attachListener( doc, 'selectionchange', function() {
-				var body = doc.getBody(),
-					sel = editor.getSelection(),
-					range = sel && sel.getRanges()[ 0 ];
-
-				if ( range && body.getHtml().match( /^<p>(?:&nbsp;|<br>)<\/p>$/i ) && range.startContainer.equals( body ) ) {
-					// Avoid the ambiguity from a real user cursor position.
-					setTimeout( function() {
-						range = editor.getSelection().getRanges()[ 0 ];
-						if ( !range.startContainer.equals( 'body' ) ) {
-							body.getFirst().remove( 1 );
-							range.moveToElementEditEnd( body );
-							range.select();
-						}
-					}, 0 );
-				}
-			} );
+		// Prevent IE/Edge from leaving a new paragraph/div after deleting all contents in body. (#6966, #13142)
+		if ( CKEDITOR.env.ie && !CKEDITOR.env.edge && editor.enterMode != CKEDITOR.ENTER_P ) {
+			removeSuperfluousElement( 'p' );
+		} else if ( CKEDITOR.env.edge && editor.enterMode != CKEDITOR.ENTER_DIV ) {
+			removeSuperfluousElement( 'div' );
 		}
 
 		// Fix problem with cursor not appearing in Webkit and IE11+ when clicking below the body (#10945, #10906).
@@ -286,7 +242,8 @@
 		}
 
 		var title = editor.document.getElementsByTag( 'title' ).getItem( 0 );
-		title.data( 'cke-title', editor.document.$.title );
+		// document.title is malfunctioning on Chrome, so get value from the element (#12402).
+		title.data( 'cke-title', title.getText() );
 
 		// [IE] JAWS will not recognize the aria label we used on the iframe
 		// unless the frame window title string is used as the voice label,
@@ -309,27 +266,43 @@
 			setTimeout( function() {
 				editor.fire( 'dataReady' );
 			}, 0 );
-
-			// IE BUG: IE might have rendered the iframe with invisible contents.
-			// (#3623). Push some inconsequential CSS style changes to force IE to
-			// refresh it.
-			//
-			// Also, for some unknown reasons, short timeouts (e.g. 100ms) do not
-			// fix the problem. :(
-			if ( CKEDITOR.env.ie ) {
-				setTimeout( function() {
-					if ( editor.document ) {
-						var $body = editor.document.$.body;
-						$body.runtimeStyle.marginBottom = '0px';
-						$body.runtimeStyle.marginBottom = '';
-					}
-				}, 1000 );
-			}
 		}, 0, this );
+
+		function removeSuperfluousElement( tagName ) {
+			var lockRetain = false;
+
+			// Superfluous elements appear after keydown
+			// and before keyup, so the procedure is as follows:
+			// 1. On first keydown mark all elements with
+			// a specified tag name as non-superfluous.
+			editable.attachListener( editable, 'keydown', function() {
+				var body = doc.getBody(),
+					retained = body.getElementsByTag( tagName );
+
+				if ( !lockRetain ) {
+					for ( var i = 0; i < retained.count(); i++ ) {
+						retained.getItem( i ).setCustomData( 'retain', true );
+					}
+					lockRetain = true;
+				}
+			}, null, null, 1 );
+
+			// 2. On keyup remove all elements that were not marked
+			// as non-superfluous (which means they must have had appeared in the meantime).
+			editable.attachListener( editable, 'keyup', function() {
+				var elements = doc.getElementsByTag( tagName );
+				if ( lockRetain ) {
+					if ( elements.count() == 1 && !elements.getItem( 0 ).getCustomData( 'retain' ) ) {
+						elements.getItem( 0 ).remove( 1 );
+					}
+					lockRetain = false;
+				}
+			} );
+		}
 	}
 
 	var framedWysiwyg = CKEDITOR.tools.createClass( {
-		$: function( editor ) {
+		$: function() {
 			this.base.apply( this, arguments );
 
 			this._.frameLoadedHandler = CKEDITOR.tools.addFunction( function( win ) {
@@ -349,6 +322,8 @@
 
 				if ( isSnapshot ) {
 					this.setHtml( data );
+					this.fixInitialSelection();
+
 					// Fire dataReady for the consistency with inline editors
 					// and because it makes sense. (#10370)
 					editor.fire( 'dataReady' );
@@ -362,8 +337,7 @@
 						docType = config.docType;
 
 					// Build the additional stuff to be included into <head>.
-					var headExtra = CKEDITOR.tools.buildStyleHtml( iframeCssFixes() )
-						                .replace( /<style>/, '<style data-cke-temp="1">' );
+					var headExtra = CKEDITOR.tools.buildStyleHtml( iframeCssFixes() ).replace( /<style>/, '<style data-cke-temp="1">' );
 
 					if ( !fullPage )
 						headExtra += CKEDITOR.tools.buildStyleHtml( editor.config.contentsCss );
@@ -484,8 +458,12 @@
 
 					// Work around Firefox bug - error prune when called from XUL (#320),
 					// defer it thanks to the async nature of this method.
-					try { doc.write( data ); } catch ( e ) {
-						setTimeout( function() { doc.write( data ); }, 0 );
+					try {
+						doc.write( data );
+					} catch ( e ) {
+						setTimeout( function() {
+							doc.write( data );
+						}, 0 );
 					}
 				}
 			},
@@ -530,23 +508,28 @@
 			detach: function() {
 				var editor = this.editor,
 					doc = editor.document,
-					iframe = editor.window.getFrame();
+					iframe = editor.window.getFrame(),
+					onResize;
 
 				framedWysiwyg.baseProto.detach.call( this );
 
 				// Memory leak proof.
 				this.clearCustomData();
 				doc.getDocumentElement().clearCustomData();
-				iframe.clearCustomData();
 				CKEDITOR.tools.removeFunction( this._.frameLoadedHandler );
 
-				var onResize = iframe.removeCustomData( 'onResize' );
-				onResize && onResize.removeListener();
+				if ( iframe ) {
+					iframe.clearCustomData();
+					onResize = iframe.removeCustomData( 'onResize' );
+					onResize && onResize.removeListener();
 
-				// IE BUG: When destroying editor DOM with the selection remains inside
-				// editing area would break IE7/8's selection system, we have to put the editing
-				// iframe offline first. (#3812 and #5441)
-				iframe.remove();
+					// IE BUG: When destroying editor DOM with the selection remains inside
+					// editing area would break IE7/8's selection system, we have to put the editing
+					// iframe offline first. (#3812 and #5441)
+					iframe.remove();
+				} else {
+					CKEDITOR.warn( 'editor-destroy-iframe' );
+				}
 			}
 		}
 	} );
@@ -558,7 +541,7 @@
 				var doc = editor.document.$;
 				doc.execCommand( 'enableObjectResizing', false, !editor.config.disableObjectResizing );
 				doc.execCommand( 'enableInlineTableEditing', false, !editor.config.disableNativeTableHandles );
-			} catch( e ) {}
+			} catch ( e ) {}
 		} else if ( CKEDITOR.env.ie && CKEDITOR.env.version < 11 && editor.config.disableObjectResizing ) {
 			// It's possible to prevent resizing up to IE10.
 			blockResizeStart( editor );
@@ -591,14 +574,6 @@
 		function resizeStartListener( evt ) {
 			evt.returnValue = false;
 		}
-	}
-
-	// DOM modification here should not bother dirty flag.(#4385)
-	function restoreDirty( editor ) {
-		if ( !editor.checkDirty() )
-			setTimeout( function() {
-			editor.resetDirty();
-		}, 0 );
 	}
 
 	function iframeCssFixes() {
@@ -679,25 +654,10 @@ CKEDITOR.config.disableNativeTableHandles = true;
 CKEDITOR.config.disableNativeSpellChecker = true;
 
 /**
- * The CSS file(s) to be used to apply style to editor content. It should
- * reflect the CSS used in the target pages where the content is to be
- * displayed.
- *
- * **Note:** This configuration value is ignored by [inline editor](#!/guide/dev_inline)
- * as it uses the styles that come directly from the page that CKEditor is
- * rendered on.
- *
- *		config.contentsCss = '/css/mysitestyles.css';
- *		config.contentsCss = ['/css/mysitestyles.css', '/css/anotherfile.css'];
- *
- * @cfg {String/Array} [contentsCss=CKEDITOR.getUrl( 'contents.css' )]
- * @member CKEDITOR.config
- */
-CKEDITOR.config.contentsCss = CKEDITOR.getUrl( 'contents.css' );
-
-/**
  * Language code of  the writing language which is used to author the editor
- * content.
+ * content. This option accepts one single entry value in the format defined in the
+ * [Tags for Identifying Languages (BCP47)](http://www.ietf.org/rfc/bcp/bcp47.txt)
+ * IETF document and is used in the `lang` attribute.
  *
  *		config.contentsLanguage = 'fr';
  *

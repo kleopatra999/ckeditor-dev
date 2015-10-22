@@ -1,5 +1,5 @@
 ﻿/**
- * @license Copyright (c) 2003-2014, CKSource - Frederico Knabben. All rights reserved.
+ * @license Copyright (c) 2003-2015, CKSource - Frederico Knabben. All rights reserved.
  * For licensing, see LICENSE.md or http://ckeditor.com/license
  */
 
@@ -23,7 +23,7 @@ CKEDITOR.editorConfig = function( config ) {
 		'elementspath,' +
 		'enterkey,' +
 		'entities,' +
-		'filebrowser,'+
+		'filebrowser,' +
 		'find,' +
 		'flash,' +
 		'floatingspace,' +
@@ -67,6 +67,7 @@ CKEDITOR.editorConfig = function( config ) {
 		'undo,' +
 		'wysiwygarea';
 	// %REMOVE_END%
+	config.startupFocus = true;
 };
 
 // %LEAVE_UNMINIFIED% %REMOVE_LINE%

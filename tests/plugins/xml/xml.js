@@ -2,7 +2,7 @@
 /* bender-ckeditor-plugins: xml */
 
 ( function() {
-	'use strict'
+	'use strict';
 
 	bender.test( {
 		'test xml.baseXml': function() {
@@ -29,7 +29,7 @@
 		'test getInnerXml': function() {
 			var xml = new CKEDITOR.xml( '<foo><bar x="2"/>bom<bar x="1"/></foo>' );
 
-			assert.areSame( '<bar x="2"/>bom<bar x="1"/>', xml.getInnerXml( 'foo' ) );
+			assert.isMatching( /^<bar x=\"2\"( )?\/>bom<bar x=\"1\"( )?\/>$/, xml.getInnerXml( 'foo' ) );
 		}
 	} );
 
